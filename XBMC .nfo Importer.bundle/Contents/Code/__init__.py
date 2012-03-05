@@ -11,44 +11,6 @@ class xbmcnfo(Agent.Movies):
 	primary_provider = True
 	languages = [Locale.Language.English]
 	
-	def decodeFilename(self, filename):
-		filename = filename.replace('a%CC%80', 'à')
-		filename = filename.replace('A%CC%80', 'À')
-		filename = filename.replace('e%CC%80', 'è')
-		filename = filename.replace('E%CC%80', 'È')
-		filename = filename.replace('u%CC%80', 'ù')
-		filename = filename.replace('U%CC%80', 'Ù')
-
-		filename = filename.replace('c%CC%A7', 'ç')
-		filename = filename.replace('C%CC%A7', 'Ç')
-
-		filename = filename.replace('e%CC%81', 'é')
-		filename = filename.replace('E%CC%81', 'É')
-
-		filename = filename.replace('a%CC%82', 'â')
-		filename = filename.replace('A%CC%82', 'Â')
-		filename = filename.replace('e%CC%82', 'ê')
-		filename = filename.replace('E%CC%82', 'Ê')
-		filename = filename.replace('i%CC%82', 'î')
-		filename = filename.replace('I%CC%82', 'Î')
-		filename = filename.replace('o%CC%82', 'ô')
-		filename = filename.replace('O%CC%82', 'Ô')
-		filename = filename.replace('u%CC%82', 'û')
-		filename = filename.replace('U%CC%82', 'Û')
-
-		filename = filename.replace('a%CC%88', 'ä')
-		filename = filename.replace('A%CC%88', 'Ä')
-		filename = filename.replace('e%CC%88', 'ë')
-		filename = filename.replace('E%CC%88', 'Ë')
-		filename = filename.replace('i%CC%88', 'ï')
-		filename = filename.replace('I%CC%88', 'Ï')
-		filename = filename.replace('o%CC%88', 'ö')
-		filename = filename.replace('O%CC%88', 'Ö')
-		filename = filename.replace('u%CC%88', 'ü')
-		filename = filename.replace('U%CC%88', 'Ü')
-
-		return filename
-
 	def search(self, results, media, lang):
 		Log("Searching")
 
@@ -56,7 +18,7 @@ class xbmcnfo(Agent.Movies):
 		xml = XML.ElementFromURL(pageUrl)
 		#Log('xml = ' + XML.StringFromElement(xml))
 		nfoXML = xml.xpath('//MediaContainer/Video/Media/Part')[0]
-		path1 = self.decodeFilename(nfoXML.get('file'))
+		path1 = String.Unquote(nfoXML.get('file'))
 		nfoFile = self.getRelatedFile(path1, '.nfo')
 		Log('Looking for Movie NFO file at ' + nfoFile)
 
@@ -106,7 +68,7 @@ class xbmcnfo(Agent.Movies):
 		xml = XML.ElementFromURL(pageUrl)
 		#Log('xml = ' + XML.StringFromElement(xml))
 		nfoXML = xml.xpath('//MediaPart')[0]
-		path1 = self.decodeFilename(nfoXML.get('file'))
+		path1 = String.Unquote(nfoXML.get('file'))
 
 		posterFilename = self.getRelatedFile(path1, '.tbn')
 		if os.path.exists(posterFilename):
