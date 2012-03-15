@@ -129,12 +129,13 @@ class xbmcnfo(Agent.Movies):
 				except: pass
 				#director
 				try: 
-					tempdirector = nfoXML.xpath('./director')[0].text
-					directors = tempdirector.split("/")
-					if directors != "":
-						metadata.directors.clear()
-						for r in directors:
-							metadata.directors.add(r)
+					directors = nfoXML.xpath('./director')
+					for directorXML in directors:
+						ds = directorXML.text.split("/")
+						if ds != "":
+							metadata.directors.clear()
+							for d in ds:
+								metadata.directors.add(d)
 				except: pass
 				#studio
 				try: metadata.studio = nfoXML.findall("studio")[0].text
@@ -148,20 +149,20 @@ class xbmcnfo(Agent.Movies):
 				metadata.genres.clear()
 				try:
 					genres = nfoXML.xpath('./genre')
-					metadata.genres.clear()
 					for genreXML in genres:
 						gs = genreXML.text.split("/")
 						if gs != "":
+							metadata.genres.clear()
 							for g in gs:
 								metadata.genres.add(g)
 				except: pass
 				#countries
 				try:
 					countries = nfoXML.xpath('./country')
-					metadata.countries.clear()
 					for countryXML in countries:
 						cs = countryXML.text.split("/")
 						if cs != "":
+							metadata.countries.clear()
 							for c in cs:
 								metadata.countries.add(c)
 				except: pass
