@@ -4,7 +4,7 @@
 # Original code author: Harley Hooligan
 # Modified by Guillaume Boudreau
 #
-import os, re, os.path
+import os, re, os.path, time, datetime
 
 class xbmcnfo(Agent.Movies):
 	name = 'XBMC .nfo Importer'
@@ -100,6 +100,9 @@ class xbmcnfo(Agent.Movies):
 				# Title
 				try: metadata.title = nfoXML.xpath('./title')[0].text
 				except: pass
+				# Original Title
+				try: metadata.original_title = nfoXML.xpath('./originaltitle')[0].text
+				except: pass
 				#summary
 				try: metadata.summary = nfoXML.xpath('./plot')[0].text
 				except: pass			
@@ -108,6 +111,15 @@ class xbmcnfo(Agent.Movies):
 				except: pass
 				#year
 				try: metadata.year = int(nfoXML.xpath("year")[0].text)
+				except: pass
+				#release date
+				try:
+					try:
+						release_date = time.strptime(nfoXML.xpath("releasedate")[0].text, "%d %B %Y")
+					except:
+						release_date = time.strptime(nfoXML.xpath("releasedate")[0].text, "%Y-%m-%d")
+					if release_date:
+						metadata.originally_available_at = datetime.datetime.fromtimestamp(time.mktime(release_date)).date()
 				except: pass
 				#rating
 				try: metadata.rating = float(nfoXML.xpath('./rating')[0].text)
@@ -130,7 +142,7 @@ class xbmcnfo(Agent.Movies):
 				#duration
 				try:
 					runtime = nfoXML.xpath("runtime")[0].text
-					metadata.duration = int(re.compile('^([0-9]+)').findall(runtime)[0])
+					metadata.duration = int(re.compile('^([0-9]+)').findall(runtime)[0]) * 60 * 1000 # ms
 				except: pass
 				#genre, cant see mulltiple only sees string not seperate genres
 				metadata.genres.clear()
@@ -142,6 +154,16 @@ class xbmcnfo(Agent.Movies):
 						if gs != "":
 							for g in gs:
 								metadata.genres.add(g)
+				except: pass
+				#countries
+				try:
+					countries = nfoXML.xpath('./country')
+					metadata.countries.clear()
+					for countryXML in countries:
+						cs = countryXML.text.split("/")
+						if cs != "":
+							for c in cs:
+								metadata.countries.add(c)
 				except: pass
 				#actors
 				metadata.roles.clear()
