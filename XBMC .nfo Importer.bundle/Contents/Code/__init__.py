@@ -130,10 +130,10 @@ class xbmcnfo(Agent.Movies):
 				#director
 				try: 
 					directors = nfoXML.xpath('./director')
+					metadata.directors.clear()
 					for directorXML in directors:
 						ds = directorXML.text.split("/")
 						if ds != "":
-							metadata.directors.clear()
 							for d in ds:
 								metadata.directors.add(d)
 				except: pass
@@ -146,23 +146,22 @@ class xbmcnfo(Agent.Movies):
 					metadata.duration = int(re.compile('^([0-9]+)').findall(runtime)[0]) * 60 * 1000 # ms
 				except: pass
 				#genre, cant see mulltiple only sees string not seperate genres
-				metadata.genres.clear()
 				try:
 					genres = nfoXML.xpath('./genre')
+					metadata.genres.clear()
 					for genreXML in genres:
 						gs = genreXML.text.split("/")
 						if gs != "":
-							metadata.genres.clear()
 							for g in gs:
 								metadata.genres.add(g)
 				except: pass
 				#countries
 				try:
 					countries = nfoXML.xpath('./country')
+					metadata.countries.clear()
 					for countryXML in countries:
 						cs = countryXML.text.split("/")
 						if cs != "":
-							metadata.countries.clear()
 							for c in cs:
 								metadata.countries.add(c)
 				except: pass
