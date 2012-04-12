@@ -117,7 +117,11 @@ class xbmcnfo(Agent.Movies):
 					try:
 						release_date = time.strptime(nfoXML.xpath("releasedate")[0].text, "%d %B %Y")
 					except:
-						release_date = time.strptime(nfoXML.xpath("releasedate")[0].text, "%Y-%m-%d")
+						try:
+							release_date = time.strptime(nfoXML.xpath("releasedate")[0].text, "%Y-%m-%d")
+						except:
+							if metadata.year:
+								release_date = time.strptime(str(metadata.year) + "-01-01", "%Y-%m-%d")
 					if release_date:
 						metadata.originally_available_at = datetime.datetime.fromtimestamp(time.mktime(release_date)).date()
 				except: pass
