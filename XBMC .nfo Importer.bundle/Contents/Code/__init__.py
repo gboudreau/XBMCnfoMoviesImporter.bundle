@@ -141,6 +141,14 @@ class xbmcnfo(Agent.Movies):
 							for d in ds:
 								metadata.directors.add(d)
 				except: pass
+				#writers/credits
+				try: 
+					credits = nfoXML.xpath('./credits')
+					metadata.writers.clear()
+					for creditXML in credits:
+						writer = creditXML.text
+						metadata.writers.add(writer)
+				except: pass
 				#studio
 				try: metadata.studio = nfoXML.findall("studio")[0].text
 				except: pass
