@@ -149,6 +149,12 @@ class xbmcnfo(Agent.Movies):
 					runtime = nfoXML.xpath("runtime")[0].text
 					metadata.duration = int(re.compile('^([0-9]+)').findall(runtime)[0]) * 60 * 1000 # ms
 				except: pass
+				#set/collections
+				try:
+					set_ = nfoXML.xpath('./set')[0].text
+					metadata.collections.clear()
+					metadata.collections.add(set_)
+				except: pass
 				#genre, cant see mulltiple only sees string not seperate genres
 				try:
 					genres = nfoXML.xpath('./genre')
