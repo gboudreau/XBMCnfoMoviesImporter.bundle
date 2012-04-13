@@ -191,6 +191,22 @@ class xbmcnfo(Agent.Movies):
 					except: pass
 					try: role.actor = actor.xpath("name")[0].text
 					except: pass
+				#(remote) posters
+				try:
+					posters = nfoXML.xpath('./thumb')
+					for posterXML in posters:
+						url = posterXML.text
+						previewUrl = posterXML.get('preview')
+						metadata.posters[url] = Proxy.Preview(previewUrl)
+				except: pass
+				#(remote)fanart
+				try:
+					arts = nfoXML.xpath('./fanart/thumb')
+					for artXML in arts:
+						url = artXML.text
+						previewUrl = artXML.get('preview')
+						metadata.art[url] = Proxy.Preview(previewUrl)
+				except: pass
 				Log("++++++++++++++++++++++++")
 				Log("Movie nfo Information")
 				Log("++++++++++++++++++++++++")
