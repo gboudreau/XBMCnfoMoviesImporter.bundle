@@ -9,7 +9,7 @@ import os, re, os.path, time, datetime
 class xbmcnfo(Agent.Movies):
 	name = 'XBMC .nfo Importer'
 	primary_provider = True
-	languages = [Locale.Language.English]
+	languages = [Locale.Language.NoLanguage]
 	
 	def search(self, results, media, lang):
 		Log("Searching")
@@ -73,13 +73,15 @@ class xbmcnfo(Agent.Movies):
 		posterFilename = self.getRelatedFile(path1, '.tbn')
 		if os.path.exists(posterFilename):
 			posterData = Core.storage.load(posterFilename)
-			metadata.posters[posterFilename] = Proxy.Media(posterData)
+			for key in metadata.posters.keys():
+				del metadata.posters[key]
 			Log('Found poster image at ' + posterFilename)
 
 		fanartFilename = self.getRelatedFile(path1, '-fanart.jpg')
 		if os.path.exists(fanartFilename):
 			fanartData = Core.storage.load(fanartFilename)
-			metadata.art[fanartFilename] = Proxy.Media(fanartData)
+			for key in metadata.art.keys():
+				del metadata.art[key]
 			Log('Found fanart image at ' + fanartFilename)
 
 		nfoFile = self.getRelatedFile(path1, '.nfo')
@@ -197,16 +199,24 @@ class xbmcnfo(Agent.Movies):
 					for posterXML in posters:
 						url = posterXML.text
 						previewUrl = posterXML.get('preview')
+						Log("Found (remote) poster at: " + previewUrl + " > " + url)
 						metadata.posters[url] = Proxy.Preview(previewUrl)
 				except: pass
-				#(remote)fanart
+				#(local) poster
+				if posterData:
+					metadata.posters[posterFilename] = Proxy.Media(posterData)
+				#(remote) fanart
 				try:
 					arts = nfoXML.xpath('./fanart/thumb')
 					for artXML in arts:
 						url = artXML.text
 						previewUrl = artXML.get('preview')
+						Log("Found (remote) fanart at: " + previewUrl + " > " + url)
 						metadata.art[url] = Proxy.Preview(previewUrl)
 				except: pass
+				#(local) fanart
+				if fanartData:
+					metadata.art[fanartFilename] = Proxy.Media(fanartData)
 				Log("++++++++++++++++++++++++")
 				Log("Movie nfo Information")
 				Log("++++++++++++++++++++++++")
