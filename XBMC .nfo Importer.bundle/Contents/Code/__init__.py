@@ -193,27 +193,28 @@ class xbmcnfo(Agent.Movies):
 					except: pass
 					try: role.actor = actor.xpath("name")[0].text
 					except: pass
+				# Remote posters and fanarts are disabled for now; having them seems to stop the local ortworks from being used.
 				#(remote) posters
-				try:
-					posters = nfoXML.xpath('./thumb')
-					for posterXML in posters:
-						url = posterXML.text
-						previewUrl = posterXML.get('preview')
-						Log("Found (remote) poster at: " + previewUrl + " > " + url)
-						metadata.posters[url] = Proxy.Preview(previewUrl)
-				except: pass
+				#try:
+				#	posters = nfoXML.xpath('./thumb')
+				#	for posterXML in posters:
+				#		url = posterXML.text
+				#		previewUrl = posterXML.get('preview')
+				#		Log("Found (remote) poster at: " + previewUrl + " > " + url)
+				#		metadata.posters[url] = Proxy.Preview(previewUrl)
+				#except: pass
 				#(local) poster
 				if posterData:
 					metadata.posters[posterFilename] = Proxy.Media(posterData)
 				#(remote) fanart
-				try:
-					arts = nfoXML.xpath('./fanart/thumb')
-					for artXML in arts:
-						url = artXML.text
-						previewUrl = artXML.get('preview')
-						Log("Found (remote) fanart at: " + previewUrl + " > " + url)
-						metadata.art[url] = Proxy.Preview(previewUrl)
-				except: pass
+				#try:
+				#	arts = nfoXML.xpath('./fanart/thumb')
+				#	for artXML in arts:
+				#		url = artXML.text
+				#		previewUrl = artXML.get('preview')
+				#		Log("Found (remote) fanart at: " + previewUrl + " > " + url)
+				#		metadata.art[url] = Proxy.Preview(previewUrl)
+				#except: pass
 				#(local) fanart
 				if fanartData:
 					metadata.art[fanartFilename] = Proxy.Media(fanartData)
