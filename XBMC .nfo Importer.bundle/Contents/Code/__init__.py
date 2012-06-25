@@ -74,6 +74,7 @@ class xbmcnfo(Agent.Movies):
 		path1 = String.Unquote(nfoXML.get('file'))
 
 		posterFilename = self.getRelatedFile(path1, '.tbn')
+		posterData = None
 		if os.path.exists(posterFilename):
 			posterData = Core.storage.load(posterFilename)
 			for key in metadata.posters.keys():
@@ -81,6 +82,7 @@ class xbmcnfo(Agent.Movies):
 			Log('Found poster image at ' + posterFilename)
 
 		fanartFilename = self.getRelatedFile(path1, '-fanart.jpg')
+		fanartData = None
 		if os.path.exists(fanartFilename):
 			fanartData = Core.storage.load(fanartFilename)
 			for key in metadata.art.keys():
@@ -196,7 +198,7 @@ class xbmcnfo(Agent.Movies):
 					except: pass
 					try: role.actor = actor.xpath("name")[0].text
 					except: pass
-				# Remote posters and fanarts are disabled for now; having them seems to stop the local ortworks from being used.
+				# Remote posters and fanarts are disabled for now; having them seems to stop the local artworks from being used.
 				#(remote) posters
 				#try:
 				#	posters = nfoXML.xpath('./thumb')
