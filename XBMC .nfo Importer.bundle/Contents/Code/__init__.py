@@ -40,7 +40,10 @@ class xbmcnfo(Agent.Movies):
 					Log("ERROR: No <title> tag in " + nfoFile + ". Aborting!")
 					return
 				# IMDB id
-				try: media.id = nfoXML.xpath('./id')[0].text
+				try:
+					imdb_id = nfoXML.xpath('./id')[0].text
+					if len(imdb_id) > 2:
+						media.id = imdb_id
 				except: pass
 				# Year
 				try: media.year = nfoXML.xpath('./year')[0].text
