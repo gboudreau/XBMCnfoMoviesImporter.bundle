@@ -4,7 +4,7 @@
 # Original code author: Harley Hooligan
 # Modified by Guillaume Boudreau
 #
-import os, re, os.path, time, datetime
+import os, re, time, datetime
 
 class xbmcnfo(Agent.Movies):
 	name = 'XBMC .nfo Importer'
