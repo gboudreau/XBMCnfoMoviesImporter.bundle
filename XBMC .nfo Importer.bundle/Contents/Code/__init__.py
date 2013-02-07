@@ -73,7 +73,7 @@ class xbmcnfo(Agent.Movies):
 		nfoXML = xml.xpath('//MediaPart')[0]
 		path1 = String.Unquote(nfoXML.get('file'))
 
-		posterFilename = self.getRelatedFile(path1, '.tbn')
+		posterFilename = self.getRelatedFile(path1, '-poster.jpg')
 		posterData = None
 		if os.path.exists(posterFilename):
 			posterData = Core.storage.load(posterFilename)
