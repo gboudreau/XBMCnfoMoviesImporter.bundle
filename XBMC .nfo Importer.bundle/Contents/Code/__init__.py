@@ -3,6 +3,7 @@
 #
 # Original code author: Harley Hooligan
 # Modified by Guillaume Boudreau
+# Eden and Frodo compatibility added by Jorge Amigo
 #
 import os, re, time, datetime
 
@@ -73,9 +74,15 @@ class xbmcnfo(Agent.Movies):
 		nfoXML = xml.xpath('//MediaPart')[0]
 		path1 = String.Unquote(nfoXML.get('file'))
 
-		posterFilename = self.getRelatedFile(path1, '.tbn')
 		posterData = None
-		if os.path.exists(posterFilename):
+		posterFilenameEden = self.getRelatedFile(path1, '.tbn')
+		posterFilenameFrodo = self.getRelatedFile(path1, '-poster.jpg')
+		posterFilename = ""
+		if os.path.exists(posterFilenameEden):
+			posterFilename = posterFilenameEden
+		if os.path.exists(posterFilenameFrodo):
+			posterFilename = posterFilenameFrodo
+		if posterFilename:
 			posterData = Core.storage.load(posterFilename)
 			for key in metadata.posters.keys():
 				del metadata.posters[key]
