@@ -27,6 +27,9 @@ class xbmcnfo(Agent.Movies):
 			Log("ERROR: Can't find .nfo file for " + path1)
 		else:
 			nfoText = Core.storage.load(nfoFile)
+			# work around failing XML parses for things with &'s in
+			# them. This may need to go farther than just &'s....
+			nfoText=re.sub(r'&([^a-zA-Z#])',r'&amp;\1',nfoText)
 			nfoTextLower = nfoText.lower()
 			if nfoTextLower.count('<movie') > 0 and nfoTextLower.count('</movie>') > 0:
 				# likely an xbmc nfo file
@@ -73,11 +76,15 @@ class xbmcnfo(Agent.Movies):
 		#Log('xml = ' + XML.StringFromElement(xml))
 		nfoXML = xml.xpath('//MediaPart')[0]
 		path1 = String.Unquote(nfoXML.get('file'))
+		folderpath = os.path.dirname(path1)
 
 		posterData = None
 		posterFilenameEden = self.getRelatedFile(path1, '.tbn')
 		posterFilenameFrodo = self.getRelatedFile(path1, '-poster.jpg')
+		posterFilenameXBMC = folderpath + "/folder.jpg"
 		posterFilename = ""
+		if os.path.exists(posterFilenameXBMC):
+			posterFilename = posterFilenameXBMC
 		if os.path.exists(posterFilenameEden):
 			posterFilename = posterFilenameEden
 		if os.path.exists(posterFilenameFrodo):
@@ -103,6 +110,7 @@ class xbmcnfo(Agent.Movies):
 			Log("ERROR: Can't find .nfo file for " + path1)
 		else:
 			nfoText = Core.storage.load(nfoFile)
+			nfoText=re.sub(r'&([^a-zA-Z#])',r'&amp;\1',nfoText)
 			nfoTextLower = nfoText.lower()
 			if nfoTextLower.count('<movie') > 0 and nfoTextLower.count('</movie>') > 0:
 				# likely an xbmc nfo file
