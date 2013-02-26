@@ -81,10 +81,13 @@ class xbmcnfo(Agent.Movies):
 		posterData = None
 		posterFilenameEden = self.getRelatedFile(path1, '.tbn')
 		posterFilenameFrodo = self.getRelatedFile(path1, '-poster.jpg')
-		posterFilenameXBMC = folderpath + "/folder.jpg"
+		posterFilenameInFolderEden = folderpath + "/folder.jpg"
+		posterFilenameInFolderFrodo = folderpath + "/poster.jpg"
 		posterFilename = ""
-		if os.path.exists(posterFilenameXBMC):
-			posterFilename = posterFilenameXBMC
+		if os.path.exists(posterFilenameInFolderEden):
+			posterFilename = posterFilenameInFolderEden
+		if os.path.exists(posterFilenameInFolderFrodo):
+			posterFilename = posterFilenameInFolderFrodo
 		if os.path.exists(posterFilenameEden):
 			posterFilename = posterFilenameEden
 		if os.path.exists(posterFilenameFrodo):
@@ -95,9 +98,15 @@ class xbmcnfo(Agent.Movies):
 				del metadata.posters[key]
 			Log('Found poster image at ' + posterFilename)
 
-		fanartFilename = self.getRelatedFile(path1, '-fanart.jpg')
 		fanartData = None
-		if os.path.exists(fanartFilename):
+		fanartFilenameEden = self.getRelatedFile(path1, '-fanart.jpg')
+		fanartFilenameInFolderFrodo = folderpath + '/fanart.jpg'
+		fanartFilename = ""
+		if os.path.exists(fanartFilenameEden):
+			fanartFilename = fanartFilenameEden
+		if os.path.exists(fanartFilenameInFolderFrodo):
+			fanartFilename = fanartFilenameInFolderFrodo
+		if fanartFilename:
 			fanartData = Core.storage.load(fanartFilename)
 			for key in metadata.art.keys():
 				del metadata.art[key]
