@@ -6,6 +6,8 @@
 	<string>com.plexapp.agents.xbmcnfo</string>
 	<key>PlexFrameworkVersion</key>
 	<string>2</string>
+	<key>PlexPluginClass</key>
+	<string>Agent</string>
 	<key>PlexPluginCodePolicy</key>
 	<string>Elevated</string>
 </dict>
