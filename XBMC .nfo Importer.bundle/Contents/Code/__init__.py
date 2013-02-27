@@ -11,15 +11,11 @@ class xbmcnfo(Agent.Movies):
 	name = 'XBMC .nfo Importer'
 	primary_provider = True
 	languages = [Locale.Language.NoLanguage]
-	
+
 	def search(self, results, media, lang):
 		Log("Searching")
 
-		pageUrl = "http://localhost:32400/library/metadata/" + media.id
-		xml = XML.ElementFromURL(pageUrl)
-		#Log('xml = ' + XML.StringFromElement(xml))
-		nfoXML = xml.xpath('//MediaContainer/Video/Media/Part')[0]
-		path1 = String.Unquote(nfoXML.get('file'))
+		path1 = String.Unquote(media.filename)
 		nfoFile = self.getRelatedFile(path1, '.nfo')
 		Log('Looking for Movie NFO file at ' + nfoFile)
 
@@ -69,13 +65,7 @@ class xbmcnfo(Agent.Movies):
 		return videoFile.replace('.' + videoFileExtension, fileExtension)
 		
 	def update(self, metadata, media, lang):
-		Log('Update called for Movie with id = ' + media.id)
-		pageUrl = "http://localhost:32400/library/metadata/" + media.id + "/tree"
-		page = HTTP.Request(pageUrl)
-		xml = XML.ElementFromURL(pageUrl)
-		#Log('xml = ' + XML.StringFromElement(xml))
-		nfoXML = xml.xpath('//MediaPart')[0]
-		path1 = String.Unquote(nfoXML.get('file'))
+		path1 = media.items[0].parts[0].file
 		folderpath = os.path.dirname(path1)
 
 		posterData = None
