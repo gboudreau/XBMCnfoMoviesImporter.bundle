@@ -53,11 +53,8 @@ class xbmcnfo(Agent.Movies):
 				try: media.year = nfoXML.xpath('./year')[0].text
 				except: pass
 
-				Log('Movie title: %s' % media.name)
-				Log('Year: %s' % media.year)
-
 				results.Append(MetadataSearchResult(id=media.id, name=media.name, year=media.year, lang=lang, score=100))
-				try: Log('scraped results: ' + result.name + ' | year = ' + str(result.year) + ' | id = ' + result.id + '| score = ' + str(result.score))
+				try: Log('Found movie information in NFO file: title = ' + media.name + ', year = ' + str(media.year) + ', id = ' + media.id)
 				except: pass
 			else:
 				Log("ERROR: No <movie> tag in " + nfoFile + ". Aborting!")
