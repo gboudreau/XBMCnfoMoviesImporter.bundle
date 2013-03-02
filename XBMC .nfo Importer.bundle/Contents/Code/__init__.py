@@ -25,9 +25,13 @@ class xbmcnfo(Agent.Movies):
 			nfoText = Core.storage.load(nfoFile)
 			# work around failing XML parses for things with &'s in
 			# them. This may need to go farther than just &'s....
-			nfoText=re.sub(r'&([^a-zA-Z#])',r'&amp;\1',nfoText)
+			nfoText = re.sub(r'&([^a-zA-Z#])', r'&amp;\1', nfoText)
 			nfoTextLower = nfoText.lower()
+
 			if nfoTextLower.count('<movie') > 0 and nfoTextLower.count('</movie>') > 0:
+				# Remove URLs (or other stuff) at the end of the XML file
+				nfoText = '%s</movie>' % nfoText.split('</movie>')[0]
+
 				# likely an xbmc nfo file
 				try: nfoXML = XML.ElementFromString(nfoText).xpath('//movie')[0]
 				except:
@@ -35,7 +39,7 @@ class xbmcnfo(Agent.Movies):
 					return
 
 				# Title
-				try: media.name = nfoXML.xpath("title")[0].text
+				try: media.name = nfoXML.xpath('./title')[0].text
 				except:
 					Log("ERROR: No <title> tag in " + nfoFile + ". Aborting!")
 					return
@@ -49,16 +53,14 @@ class xbmcnfo(Agent.Movies):
 				try: media.year = nfoXML.xpath('./year')[0].text
 				except: pass
 
-				Log('Movie title: ' + media.name)
-				Log('Year: ' + str(media.year))
-   
-				name = media.name
-				results.Append(MetadataSearchResult(id=media.id, name=name, year=media.year, lang=lang, score=100))
-				for result in results:
-					try: Log('scraped results: ' + result.name + ' | year = ' + str(result.year) + ' | id = ' + result.id + '| score = ' + str(result.score))
-					except: pass
+				Log('Movie title: %s' % media.name)
+				Log('Year: %s' % media.year)
+
+				results.Append(MetadataSearchResult(id=media.id, name=media.name, year=media.year, lang=lang, score=100))
+				try: Log('scraped results: ' + result.name + ' | year = ' + str(result.year) + ' | id = ' + result.id + '| score = ' + str(result.score))
+				except: pass
 			else:
-				Log("ERROR: No <tvshow> tag in " + nfoFile + ". Aborting!")
+				Log("ERROR: No <movie> tag in " + nfoFile + ". Aborting!")
 
 	def getRelatedFile(self, videoFile, fileExtension):
 		videoFileExtension = videoFile.split(".")[-1]
