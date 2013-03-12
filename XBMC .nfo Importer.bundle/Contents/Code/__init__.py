@@ -191,7 +191,7 @@ class xbmcnfo(Agent.Movies):
 						gs = genreXML.text.split("/")
 						if gs != "":
 							for g in gs:
-								metadata.genres.add(g)
+								metadata.genres.add(g.strip())
 				except: pass
 				#countries
 				try:
