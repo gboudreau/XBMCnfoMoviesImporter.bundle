@@ -103,9 +103,15 @@ class xbmcnfo(Agent.Movies):
 
 		nfoFile = self.getRelatedFile(path1, '.nfo')
 		Log('Looking for Movie NFO file at ' + nfoFile)
+		nfoFile2 = folderpath + '\movie.nfo'
+		Log('Additionally looking for Movie NFO file at ' + nfoFile2)
 
 		if not os.path.exists(nfoFile):
 			Log("ERROR: Can't find .nfo file for " + path1)
+			Log("Some users may have movie.nfo files. (FilmInfo!Organizer users for example) We will try this.")
+			nfoFile = nfoFile2
+		if not os.path.exists(nfoFile):
+			Log("ERROR: Also can't find " + nfoFile)
 		else:
 			nfoText = Core.storage.load(nfoFile)
 			nfoText=re.sub(r'&([^a-zA-Z#])',r'&amp;\1',nfoText)
