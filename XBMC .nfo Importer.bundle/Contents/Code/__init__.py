@@ -122,6 +122,9 @@ class xbmcnfo(Agent.Movies):
 			nfoText=re.sub(r'&([^a-zA-Z#])',r'&amp;\1',nfoText)
 			nfoTextLower = nfoText.lower()
 			if nfoTextLower.count('<movie') > 0 and nfoTextLower.count('</movie>') > 0:
+				# Remove URLs (or other stuff) at the end of the XML file
+				nfoText = '%s</movie>' % nfoText.split('</movie>')[0]
+
 				# likely an xbmc nfo file
 				try: nfoXML = XML.ElementFromString(nfoText).xpath('//movie')[0]
 				except:
@@ -160,7 +163,14 @@ class xbmcnfo(Agent.Movies):
 				try: metadata.rating = float(nfoXML.xpath('./rating')[0].text)
 				except: pass
 				#content rating
-				try: metadata.content_rating = nfoXML.xpath('./mpaa')[0].text
+				try:
+					metadata.content_rating = nfoXML.xpath('./mpaa')[0].text
+					if len(metadata.content_rating.split(' ')) > 1:
+						valid_mpaa_ratings = ('G', 'PG', 'PG-13', 'R', 'NC-17')
+						for mpaa_rating in valid_mpaa_ratings:
+							if (' %s ' % mpaa_rating) in metadata.content_rating:
+								metadata.content_rating = mpaa_rating
+								break
 				except: pass
 				#director
 				try: 
