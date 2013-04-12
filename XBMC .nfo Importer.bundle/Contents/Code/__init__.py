@@ -117,9 +117,6 @@ class xbmcnfo(Agent.Movies):
 			nfoText=re.sub(r'&([^a-zA-Z#])',r'&amp;\1',nfoText)
 			nfoTextLower = nfoText.lower()
 			if nfoTextLower.count('<movie') > 0 and nfoTextLower.count('</movie>') > 0:
-				# Remove URLs (or other stuff) at the end of the XML file
-				nfoText = '%s</movie>' % nfoText.split('</movie>')[0]
-
 				# likely an xbmc nfo file
 				try: nfoXML = XML.ElementFromString(nfoText).xpath('//movie')[0]
 				except:
