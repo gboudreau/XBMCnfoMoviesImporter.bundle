@@ -21,6 +21,10 @@ class xbmcnfo(Agent.Movies):
 
 		if not os.path.exists(nfoFile):
 			Log("ERROR: Can't find .nfo file for " + path1)
+			Log("Some users may have movie.nfo files. (FilmInfo!Organizer users for example) We will try this.")
+			nfoFile = self.getAlternativeNfoFile(path1)
+		if not os.path.exists(nfoFile):
+			Log("ERROR: Also can't find " + nfoFile)
 		else:
 			nfoText = Core.storage.load(nfoFile)
 			# work around failing XML parses for things with &'s in
@@ -63,6 +67,9 @@ class xbmcnfo(Agent.Movies):
 		videoFileExtension = videoFile.split(".")[-1]
 		return videoFile.replace('.' + videoFileExtension, fileExtension)
 		
+	def getAlternativeNfoFile(self, videoFile):
+		return os.path.dirname(videoFile) + '\movie.nfo'
+	
 	def update(self, metadata, media, lang):
 		path1 = media.items[0].parts[0].file
 		folderpath = os.path.dirname(path1)
@@ -103,13 +110,11 @@ class xbmcnfo(Agent.Movies):
 
 		nfoFile = self.getRelatedFile(path1, '.nfo')
 		Log('Looking for Movie NFO file at ' + nfoFile)
-		nfoFile2 = folderpath + '\movie.nfo'
-		Log('Additionally looking for Movie NFO file at ' + nfoFile2)
 
 		if not os.path.exists(nfoFile):
 			Log("ERROR: Can't find .nfo file for " + path1)
 			Log("Some users may have movie.nfo files. (FilmInfo!Organizer users for example) We will try this.")
-			nfoFile = nfoFile2
+			nfoFile = self.getAlternativeNfoFile(path1)
 		if not os.path.exists(nfoFile):
 			Log("ERROR: Also can't find " + nfoFile)
 		else:
@@ -155,14 +160,7 @@ class xbmcnfo(Agent.Movies):
 				try: metadata.rating = float(nfoXML.xpath('./rating')[0].text)
 				except: pass
 				#content rating
-				try:
-					metadata.content_rating = nfoXML.xpath('./mpaa')[0].text
-					if len(metadata.content_rating.split(' ')) > 1:
-						valid_mpaa_ratings = ('G', 'PG', 'PG-13', 'R', 'NC-17')
-						for mpaa_rating in valid_mpaa_ratings:
-							if (' %s ' % mpaa_rating) in metadata.content_rating:
-								metadata.content_rating = mpaa_rating
-								break
+				try: metadata.content_rating = nfoXML.xpath('./mpaa')[0].text
 				except: pass
 				#director
 				try: 
