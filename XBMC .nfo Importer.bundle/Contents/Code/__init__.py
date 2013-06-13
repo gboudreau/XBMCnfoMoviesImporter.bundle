@@ -12,23 +12,61 @@ class xbmcnfo(Agent.Movies):
 	primary_provider = True
 	languages = [Locale.Language.NoLanguage]
 
+##### helper functions #####
+	def getRelatedFile(self, videoFile, fileExtension):
+		videoFileExtension = videoFile.split(".")[-1]
+		return videoFile.replace('.' + videoFileExtension, fileExtension)
+
+	def getMovieNameFromFolder(self, folderpath):
+		foldersplit = folderpath.split ('/')
+		if foldersplit[-1] == 'VIDEO_TS':
+			moviename = '/' + '/'.join(foldersplit[1:len(foldersplit)-1:]) + '/' + re.sub (r' \(.*\)',r'',foldersplit[-2])
+		else:
+			moviename = '/' + '/'.join(foldersplit) + '/' + re.sub (r' \(.*\)',r'',foldersplit[-1])
+		Log("Moviename from folder: " + moviename)
+		return moviename
+
+	def checkFilePaths(self, pathfns, ftype):
+		for pathfn in pathfns:
+			Log("Trying " + pathfn)
+			if not os.path.exists(pathfn):
+				continue
+			else:
+				Log("Found " + ftype + " file " + pathfn)
+				return pathfn
+		else:
+			Log("No " + ftype + " file found! Aborting!")
+
+##### search function #####
 	def search(self, results, media, lang):
-		Log("Searching")
+		Log("++++++++++++++++++++++++")
+		Log("Entering search function")
+		Log("++++++++++++++++++++++++")
 
 		path1 = String.Unquote(media.filename)
 		folderpath = os.path.dirname(path1)
-		nfoFile = self.getRelatedFile(path1, '.nfo')
-		Log('Looking for Movie NFO file at ' + nfoFile)
-		nfoFile2 = folderpath + '/movie.nfo'
-		Log('Additionally looking for Movie NFO file at ' + nfoFile2)
+		Log('folderpath: ' + folderpath)
+		
 
-		if not os.path.exists(nfoFile):
-			Log("ERROR: Can't find .nfo file for " + path1)
-			Log("Some users may have movie.nfo files. (FilmInfo!Organizer users for example) We will try this.")
-			nfoFile = nfoFile2
-		if not os.path.exists(nfoFile):
-			Log("ERROR: Also can't find " + nfoFile)
-		else:
+		# Moviename from folder
+		moviename = self.getMovieNameFromFolder (folderpath)
+
+		nfoNames = []
+		# Eden / Frodo
+		nfoNames.append (self.getRelatedFile(path1, '.nfo'))
+		nfoNames.append (moviename + '.nfo')
+		# VIDEO_TS
+		nfoNames.append (folderpath + '/video_ts.nfo')
+		# movie.nfo (e.g. FilmInfo!Organizer users)
+		nfoNames.append (folderpath + '/movie.nfo')
+		# last resort - use first found .nfo
+		nfoFiles = [f for f in os.listdir(folderpath) if f.endswith('.nfo')]
+		nfoNames.append (folderpath + '/' + nfoFiles[0])
+
+		# check possible .nfo file locations
+		nfoFile = self.checkFilePaths (nfoNames, '.nfo')
+
+		if nfoFile:
 			nfoText = Core.storage.load(nfoFile)
 			# work around failing XML parses for things with &'s in
 			# them. This may need to go farther than just &'s....
@@ -66,60 +104,72 @@ class xbmcnfo(Agent.Movies):
 			else:
 				Log("ERROR: No <movie> tag in " + nfoFile + ". Aborting!")
 
-	def getRelatedFile(self, videoFile, fileExtension):
-		videoFileExtension = videoFile.split(".")[-1]
-		return videoFile.replace('.' + videoFileExtension, fileExtension)
-		
+##### update Function #####
 	def update(self, metadata, media, lang):
+		Log("++++++++++++++++++++++++")
+		Log("Entering update function")
+		Log("++++++++++++++++++++++++")
+
 		path1 = media.items[0].parts[0].file
 		folderpath = os.path.dirname(path1)
+		Log('folderpath: ' + folderpath)
+
+		# Moviename from folder
+		moviename = self.getMovieNameFromFolder (folderpath)
 
 		posterData = None
-		posterFilenameEden = self.getRelatedFile(path1, '.tbn')
-		posterFilenameFrodo = self.getRelatedFile(path1, '-poster.jpg')
-		posterFilenameInFolderEden = folderpath + "/folder.jpg"
-		posterFilenameInFolderFrodo = folderpath + "/poster.jpg"
 		posterFilename = ""
-		if os.path.exists(posterFilenameInFolderEden):
-			posterFilename = posterFilenameInFolderEden
-		if os.path.exists(posterFilenameInFolderFrodo):
-			posterFilename = posterFilenameInFolderFrodo
-		if os.path.exists(posterFilenameEden):
-			posterFilename = posterFilenameEden
-		if os.path.exists(posterFilenameFrodo):
-			posterFilename = posterFilenameFrodo
+		posterNames = []
+		# Eden
+		posterNames.append (self.getRelatedFile(path1, '.tbn'))
+		posterNames.append (folderpath + "/folder.jpg")
+		# Frodo
+		posterNames.append (self.getRelatedFile(path1, '-poster.jpg'))
+		posterNames.append (moviename + '-poster.jpg')
+		posterNames.append (folderpath + '/poster.jpg')
+		posterNames.append (folderpath.replace ('/VIDEO_TS','') + '/poster.jpg')
+
+		# check possible poster file locations
+		posterFilename = self.checkFilePaths (posterNames, 'poster')
+
 		if posterFilename:
 			posterData = Core.storage.load(posterFilename)
 			for key in metadata.posters.keys():
 				del metadata.posters[key]
-			Log('Found poster image at ' + posterFilename)
 
 		fanartData = None
-		fanartFilenameEden = self.getRelatedFile(path1, '-fanart.jpg')
-		fanartFilenameInFolderFrodo = folderpath + '/fanart.jpg'
 		fanartFilename = ""
-		if os.path.exists(fanartFilenameEden):
-			fanartFilename = fanartFilenameEden
-		if os.path.exists(fanartFilenameInFolderFrodo):
-			fanartFilename = fanartFilenameInFolderFrodo
+		fanartNames = []
+		# Eden / Frodo
+		fanartNames.append (self.getRelatedFile(path1, '-fanart.jpg'))
+		fanartNames.append (moviename + '-fanart.jpg')
+		fanartNames.append (folderpath + '/fanart.jpg')
+		fanartNames.append (folderpath.replace ('/VIDEO_TS','') + '/fanart.jpg')
+
+		# check possible fanart file locations
+		fanartFilename = self.checkFilePaths (fanartNames, 'fanart')
+
 		if fanartFilename:
 			fanartData = Core.storage.load(fanartFilename)
 			for key in metadata.art.keys():
 				del metadata.art[key]
-			Log('Found fanart image at ' + fanartFilename)
 
-		nfoFile = self.getRelatedFile(path1, '.nfo')
-		Log('Looking for Movie NFO file at ' + nfoFile)
-		nfoFile2 = folderpath + '/movie.nfo'
-		Log('Additionally looking for Movie NFO file at ' + nfoFile2)
+		nfoNames = []
+		# Eden / Frodo
+		nfoNames.append (self.getRelatedFile(path1, '.nfo'))
+		nfoNames.append (moviename + '.nfo')
+		# VIDEO_TS
+		nfoNames.append (folderpath + '/video_ts.nfo')
+		# movie.nfo (e.g. FilmInfo!Organizer users)
+		nfoNames.append (folderpath + '/movie.nfo')
+		# last resort - use first found .nfo
+		nfoFiles = [f for f in os.listdir(folderpath) if f.endswith('.nfo')]
+		nfoNames.append (folderpath + '/' + nfoFiles[0])
 
-		if not os.path.exists(nfoFile):
-			Log("ERROR: Can't find .nfo file for " + path1)
-			Log("Some users may have movie.nfo files. (FilmInfo!Organizer users for example) We will try this.")
-			nfoFile = nfoFile2
-		if not os.path.exists(nfoFile):
-			Log("ERROR: Also can't find " + nfoFile)
-		else:
+		# check possible .nfo file locations
+		nfoFile = self.checkFilePaths (nfoNames, '.nfo')
+
+		if nfoFile:
 			nfoText = Core.storage.load(nfoFile)
 			nfoText=re.sub(r'&([^a-zA-Z#])',r'&amp;\1',nfoText)
 			nfoTextLower = nfoText.lower()
@@ -259,9 +309,9 @@ class xbmcnfo(Agent.Movies):
 				#(local) fanart
 				if fanartData:
 					metadata.art[fanartFilename] = Proxy.Media(fanartData)
-				Log("++++++++++++++++++++++++")
+				Log("---------------------")
 				Log("Movie nfo Information")
-				Log("++++++++++++++++++++++++")
+				Log("---------------------")
 				Log("Title: " + str(metadata.title))
 				Log("id: " + str(metadata.guid))
 				Log("Summary: " + str(metadata.summary))
@@ -280,7 +330,7 @@ class xbmcnfo(Agent.Movies):
 				Log("Genres")
 				for r in metadata.genres:
 					Log("  " + r)
-				Log("++++++++++++++++++++++++")
+				Log("---------------------")
 			else:
 				Log("ERROR: No <movie> tag in " + nfoFile + ". Aborting!")
 			return metadata
