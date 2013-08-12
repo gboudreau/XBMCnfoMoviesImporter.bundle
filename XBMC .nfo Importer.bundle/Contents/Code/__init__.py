@@ -4,6 +4,7 @@
 # Original code author: Harley Hooligan
 # Modified by Guillaume Boudreau
 # Eden and Frodo compatibility added by Jorge Amigo
+# Cleanup and some extensions by SlrG
 #
 import os, re, time, datetime
 
@@ -11,6 +12,7 @@ class xbmcnfo(Agent.Movies):
 	name = 'XBMC .nfo Importer'
 	primary_provider = True
 	languages = [Locale.Language.NoLanguage]
+	accepts_from = ['com.plexapp.agents.localmedia']
 
 ##### helper functions #####
 	def getRelatedFile(self, videoFile, fileExtension):
@@ -123,11 +125,19 @@ class xbmcnfo(Agent.Movies):
 		# Eden
 		posterNames.append (self.getRelatedFile(path1, '.tbn'))
 		posterNames.append (folderpath + "/folder.jpg")
+		posterNames.append (folderpath.replace ('/VIDEO_TS','') + '/folder.jpg')
 		# Frodo
 		posterNames.append (self.getRelatedFile(path1, '-poster.jpg'))
 		posterNames.append (moviename + '-poster.jpg')
 		posterNames.append (folderpath + '/poster.jpg')
 		posterNames.append (folderpath.replace ('/VIDEO_TS','') + '/poster.jpg')
+		# Others
+		posterNames.append (folderpath + "/cover.jpg")
+		posterNames.append (folderpath.replace ('/VIDEO_TS','') + '/cover.jpg')
+		posterNames.append (folderpath + "/default.jpg")
+		posterNames.append (folderpath.replace ('/VIDEO_TS','') + '/default.jpg')
+		posterNames.append (folderpath + "/movie.jpg")
+		posterNames.append (folderpath.replace ('/VIDEO_TS','') + '/movie.jpg')
 
 		# check possible poster file locations
 		posterFilename = self.checkFilePaths (posterNames, 'poster')
@@ -145,6 +155,13 @@ class xbmcnfo(Agent.Movies):
 		fanartNames.append (moviename + '-fanart.jpg')
 		fanartNames.append (folderpath + '/fanart.jpg')
 		fanartNames.append (folderpath.replace ('/VIDEO_TS','') + '/fanart.jpg')
+		# Others
+		fanartNames.append (folderpath + '/art.jpg')
+		fanartNames.append (folderpath.replace ('/VIDEO_TS','') + '/art.jpg')
+		fanartNames.append (folderpath + '/backdrop.jpg')
+		fanartNames.append (folderpath.replace ('/VIDEO_TS','') + '/backdrop.jpg')
+		fanartNames.append (folderpath + '/background.jpg')
+		fanartNames.append (folderpath.replace ('/VIDEO_TS','') + '/background.jpg')
 
 		# check possible fanart file locations
 		fanartFilename = self.checkFilePaths (fanartNames, 'fanart')
