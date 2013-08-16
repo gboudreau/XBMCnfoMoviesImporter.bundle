@@ -122,6 +122,8 @@ class xbmcnfo(Agent.Movies):
 		posterData = None
 		posterFilename = ""
 		posterNames = []
+		# DLNA
+		posterNames.append (self.getRelatedFile(path1, '.jpg'))
 		# Eden
 		posterNames.append (self.getRelatedFile(path1, '.tbn'))
 		posterNames.append (folderpath + "/folder.jpg")
@@ -208,7 +210,7 @@ class xbmcnfo(Agent.Movies):
 				except: pass
 				#summary
 				try: metadata.summary = nfoXML.xpath('./plot')[0].text
-				except: pass			
+				except: pass
 				#tagline
 				try: metadata.tagline = nfoXML.findall("tagline")[0].text
 				except: pass
@@ -229,15 +231,15 @@ class xbmcnfo(Agent.Movies):
 						metadata.originally_available_at = datetime.datetime.fromtimestamp(time.mktime(release_date)).date()
 				except: pass
 				#rating
-				try: metadata.rating = float(nfoXML.xpath('./rating')[0].text)
+				try: metadata.rating = float(nfoXML.xpath('./rating')[0].text.replace(',','.'))
 				except: pass
 				#content rating
 				try:
 					metadata.content_rating = nfoXML.xpath('./mpaa')[0].text
 					if len(metadata.content_rating.split(' ')) > 1:
-						valid_mpaa_ratings = ('G', 'PG', 'PG-13', 'R', 'NC-17')
+						valid_mpaa_ratings = ('NR', 'G', 'PG', 'PG-13', 'R', 'NC-17', 'TV-Y', 'TV-Y7', 'TV-G', 'TV-PG', 'TV-14', 'TV-MA')
 						for mpaa_rating in valid_mpaa_ratings:
-							if (' %s ' % mpaa_rating) in metadata.content_rating:
+							if re.findall((r'(^|\s)%s(\s|$)' % mpaa_rating), metadata.content_rating):
 								metadata.content_rating = mpaa_rating
 								break
 				except: pass
