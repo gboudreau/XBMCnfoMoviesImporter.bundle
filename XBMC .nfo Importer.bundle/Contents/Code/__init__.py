@@ -235,13 +235,14 @@ class xbmcnfo(Agent.Movies):
 				except: pass
 				#content rating
 				try:
-					metadata.content_rating = nfoXML.xpath('./mpaa')[0].text
-					if len(metadata.content_rating.split(' ')) > 1:
-						valid_mpaa_ratings = ('NR', 'G', 'PG', 'PG-13', 'R', 'NC-17', 'TV-Y', 'TV-Y7', 'TV-G', 'TV-PG', 'TV-14', 'TV-MA')
-						for mpaa_rating in valid_mpaa_ratings:
-							if re.findall((r'(^|\s)%s(\s|$)' % mpaa_rating), metadata.content_rating):
-								metadata.content_rating = mpaa_rating
-								break
+					content_rating = nfoXML.xpath('./mpaa')[0].text
+					valid_mpaa_ratings = ('G', 'PG', 'PG-13', 'R', 'NC-17', 'TV-Y', 'TV-Y7', 'TV-G', 'TV-PG', 'TV-14', 'TV-MA')
+					for mpaa_rating in valid_mpaa_ratings:
+						if re.findall((r'(^|\s)%s(\s|$)' % mpaa_rating), content_rating):
+							metadata.content_rating = mpaa_rating
+							break
+					else:
+						metadata.content_rating = 'NR'
 				except: pass
 				#director
 				try: 
