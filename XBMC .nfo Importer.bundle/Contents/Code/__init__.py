@@ -114,6 +114,7 @@ class xbmcnfo(Agent.Movies):
 
 		path1 = media.items[0].parts[0].file
 		folderpath = os.path.dirname(path1)
+		if '/VIDEO_TS' in folderpath: folderpathDVD = folderpath.replace ('/VIDEO_TS', '')
 		Log('folderpath: ' + folderpath)
 
 		# Moviename from folder
@@ -123,23 +124,23 @@ class xbmcnfo(Agent.Movies):
 		posterFilename = ""
 		posterNames = []
 		# DLNA
-		posterNames.append (self.getRelatedFile(path1, '.jpg'))
+		# posterNames.append (self.getRelatedFile(path1, '.jpg'))
 		# Eden
-		posterNames.append (self.getRelatedFile(path1, '.tbn'))
-		posterNames.append (folderpath + "/folder.jpg")
-		posterNames.append (folderpath.replace ('/VIDEO_TS','') + '/folder.jpg')
+		# posterNames.append (self.getRelatedFile(path1, '.tbn'))
+		# posterNames.append (folderpath + "/folder.jpg")
+		if '/VIDEO_TS' in folderpath: posterNames.append (folderpathDVD + '/folder.jpg')
 		# Frodo
 		posterNames.append (self.getRelatedFile(path1, '-poster.jpg'))
 		posterNames.append (moviename + '-poster.jpg')
-		posterNames.append (folderpath + '/poster.jpg')
-		posterNames.append (folderpath.replace ('/VIDEO_TS','') + '/poster.jpg')
+		# posterNames.append (folderpath + '/poster.jpg')
+		if '/VIDEO_TS' in folderpath: posterNames.append (folderpathDVD + '/poster.jpg')
 		# Others
-		posterNames.append (folderpath + "/cover.jpg")
-		posterNames.append (folderpath.replace ('/VIDEO_TS','') + '/cover.jpg')
-		posterNames.append (folderpath + "/default.jpg")
-		posterNames.append (folderpath.replace ('/VIDEO_TS','') + '/default.jpg')
-		posterNames.append (folderpath + "/movie.jpg")
-		posterNames.append (folderpath.replace ('/VIDEO_TS','') + '/movie.jpg')
+		# posterNames.append (folderpath + "/cover.jpg")
+		if '/VIDEO_TS' in folderpath: posterNames.append (folderpathDVD + '/cover.jpg')
+		# posterNames.append (folderpath + "/default.jpg")
+		if '/VIDEO_TS' in folderpath: posterNames.append (folderpathDVD + '/default.jpg')
+		# posterNames.append (folderpath + "/movie.jpg")
+		if '/VIDEO_TS' in folderpath: posterNames.append (folderpathDVD + '/movie.jpg')
 
 		# check possible poster file locations
 		posterFilename = self.checkFilePaths (posterNames, 'poster')
@@ -153,17 +154,17 @@ class xbmcnfo(Agent.Movies):
 		fanartFilename = ""
 		fanartNames = []
 		# Eden / Frodo
-		fanartNames.append (self.getRelatedFile(path1, '-fanart.jpg'))
-		fanartNames.append (moviename + '-fanart.jpg')
-		fanartNames.append (folderpath + '/fanart.jpg')
-		fanartNames.append (folderpath.replace ('/VIDEO_TS','') + '/fanart.jpg')
+		# fanartNames.append (self.getRelatedFile(path1, '-fanart.jpg'))
+		# fanartNames.append (moviename + '-fanart.jpg')
+		# fanartNames.append (folderpath + '/fanart.jpg')
+		if '/VIDEO_TS' in folderpath: fanartNames.append (folderpathDVD + '/fanart.jpg')
 		# Others
-		fanartNames.append (folderpath + '/art.jpg')
-		fanartNames.append (folderpath.replace ('/VIDEO_TS','') + '/art.jpg')
-		fanartNames.append (folderpath + '/backdrop.jpg')
-		fanartNames.append (folderpath.replace ('/VIDEO_TS','') + '/backdrop.jpg')
-		fanartNames.append (folderpath + '/background.jpg')
-		fanartNames.append (folderpath.replace ('/VIDEO_TS','') + '/background.jpg')
+		# fanartNames.append (folderpath + '/art.jpg')
+		if '/VIDEO_TS' in folderpath: fanartNames.append (folderpathDVD + '/art.jpg')
+		# fanartNames.append (folderpath + '/backdrop.jpg')
+		if '/VIDEO_TS' in folderpath: fanartNames.append (folderpathDVD + '/backdrop.jpg')
+		# fanartNames.append (folderpath + '/background.jpg')
+		if '/VIDEO_TS' in folderpath: fanartNames.append (folderpathDVD + '/background.jpg')
 
 		# check possible fanart file locations
 		fanartFilename = self.checkFilePaths (fanartNames, 'fanart')
@@ -235,12 +236,9 @@ class xbmcnfo(Agent.Movies):
 				except: pass
 				#content rating
 				try:
-					content_rating = nfoXML.xpath('./mpaa')[0].text
-					valid_mpaa_ratings = ('G', 'PG', 'PG-13', 'R', 'NC-17', 'TV-Y', 'TV-Y7', 'TV-G', 'TV-PG', 'TV-14', 'TV-MA')
-					for mpaa_rating in valid_mpaa_ratings:
-						if re.findall((r'(^|\s)%s(\s|$)' % mpaa_rating), content_rating):
-							metadata.content_rating = mpaa_rating
-							break
+					match = re.match(r'(?:Rated\s+)?(?P<mpaa>[A-z0-9-]+)?', nfoXML.xpath('./mpaa')[0].text)
+					if match.group('mpaa'):
+						metadata.content_rating = match.group('mpaa')
 					else:
 						metadata.content_rating = 'NR'
 				except: pass
