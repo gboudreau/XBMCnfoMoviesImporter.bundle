@@ -236,7 +236,7 @@ class xbmcnfo(Agent.Movies):
 				except: pass
 				#content rating
 				try:
-					match = re.match(r'(?:Rated\s+)?(?P<mpaa>[A-z0-9-]+)?', nfoXML.xpath('./mpaa')[0].text)
+					match = re.match(r'(?:Rated\s)?(?P<mpaa>[A-z0-9-+/.]+(?:\s[0-9]+[A-z]?)?)?', nfoXML.xpath('./mpaa')[0].text)
 					if match.group('mpaa'):
 						metadata.content_rating = match.group('mpaa')
 					else:
