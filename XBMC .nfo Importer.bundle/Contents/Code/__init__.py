@@ -125,22 +125,22 @@ class xbmcnfo(Agent.Movies):
 		posterFilename = ""
 		posterNames = []
 		# DLNA
-		# posterNames.append (self.getRelatedFile(path1, '.jpg'))
+		posterNames.append (self.getRelatedFile(path1, '.jpg'))
 		# Eden
-		# posterNames.append (self.getRelatedFile(path1, '.tbn'))
-		# posterNames.append (folderpath + "/folder.jpg")
+		posterNames.append (self.getRelatedFile(path1, '.tbn'))
+		posterNames.append (folderpath + "/folder.jpg")
 		if isDVD: posterNames.append (folderpathDVD + '/folder.jpg')
 		# Frodo
 		posterNames.append (self.getRelatedFile(path1, '-poster.jpg'))
 		posterNames.append (moviename + '-poster.jpg')
-		# posterNames.append (folderpath + '/poster.jpg')
+		posterNames.append (folderpath + '/poster.jpg')
 		if isDVD: posterNames.append (folderpathDVD + '/poster.jpg')
 		# Others
-		# posterNames.append (folderpath + "/cover.jpg")
+		posterNames.append (folderpath + "/cover.jpg")
 		if isDVD: posterNames.append (folderpathDVD + '/cover.jpg')
-		# posterNames.append (folderpath + "/default.jpg")
+		posterNames.append (folderpath + "/default.jpg")
 		if isDVD: posterNames.append (folderpathDVD + '/default.jpg')
-		# posterNames.append (folderpath + "/movie.jpg")
+		posterNames.append (folderpath + "/movie.jpg")
 		if isDVD: posterNames.append (folderpathDVD + '/movie.jpg')
 
 		# check possible poster file locations
@@ -155,16 +155,16 @@ class xbmcnfo(Agent.Movies):
 		fanartFilename = ""
 		fanartNames = []
 		# Eden / Frodo
-		# fanartNames.append (self.getRelatedFile(path1, '-fanart.jpg'))
-		# fanartNames.append (moviename + '-fanart.jpg')
-		# fanartNames.append (folderpath + '/fanart.jpg')
+		fanartNames.append (self.getRelatedFile(path1, '-fanart.jpg'))
+		fanartNames.append (moviename + '-fanart.jpg')
+		fanartNames.append (folderpath + '/fanart.jpg')
 		if isDVD: fanartNames.append (folderpathDVD + '/fanart.jpg')
 		# Others
-		# fanartNames.append (folderpath + '/art.jpg')
+		fanartNames.append (folderpath + '/art.jpg')
 		if isDVD: fanartNames.append (folderpathDVD + '/art.jpg')
-		# fanartNames.append (folderpath + '/backdrop.jpg')
+		fanartNames.append (folderpath + '/backdrop.jpg')
 		if isDVD: fanartNames.append (folderpathDVD + '/backdrop.jpg')
-		# fanartNames.append (folderpath + '/background.jpg')
+		fanartNames.append (folderpath + '/background.jpg')
 		if isDVD: fanartNames.append (folderpathDVD + '/background.jpg')
 
 		# check possible fanart file locations
