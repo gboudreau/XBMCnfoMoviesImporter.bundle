@@ -72,7 +72,7 @@ class xbmcnfo(Agent.Movies):
 			nfoText = Core.storage.load(nfoFile)
 			# work around failing XML parses for things with &'s in
 			# them. This may need to go farther than just &'s....
-			nfoText = re.sub(r'&([^a-zA-Z#])', r'&amp;\1', nfoText)
+			nfoText = re.sub(r'&(?![A-Za-z]+[0-9]*;|#[0-9]+;|#x[0-9a-fA-F]+;)', r'&amp;', nfoText)
 			nfoTextLower = nfoText.lower()
 
 			if nfoTextLower.count('<movie') > 0 and nfoTextLower.count('</movie>') > 0:
