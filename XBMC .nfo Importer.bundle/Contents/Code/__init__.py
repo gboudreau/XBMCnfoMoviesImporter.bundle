@@ -5,6 +5,7 @@
 # Modified by Guillaume Boudreau
 # Eden and Frodo compatibility added by Jorge Amigo
 # Cleanup and some extensions by SlrG
+# Multipart filter idea by diamondsw
 #
 import os, re, time, datetime
 
@@ -17,15 +18,24 @@ class xbmcnfo(Agent.Movies):
 ##### helper functions #####
 	def getRelatedFile(self, videoFile, fileExtension):
 		videoFileExtension = videoFile.split(".")[-1]
-		return videoFile.replace('.' + videoFileExtension, fileExtension)
+		videoFileBase = videoFile.replace('.' + videoFileExtension, '')
+		videoFileBase = re.sub(r'(?is)\s*\-\s*(cd|dvd|disc|disk|part|pt)\s*[0-9]$', '', videoFileBase)
+		return (videoFileBase + fileExtension)
 
-	def getMovieNameFromFolder(self, folderpath):
+	def getMovieNameFromFolder(self, folderpath, withYear):
 		foldersplit = folderpath.split ('/')
-		if foldersplit[-1] == 'VIDEO_TS':
-			moviename = '/' + '/'.join(foldersplit[1:len(foldersplit)-1:]) + '/' + re.sub (r' \(.*\)',r'',foldersplit[-2])
+		if withYear == True:
+			if foldersplit[-1] == 'VIDEO_TS':
+				moviename = '/'.join(foldersplit[1:len(foldersplit)-1:]) + '/' + foldersplit[-2]
+			else:
+				moviename = '/'.join(foldersplit) + '/' + foldersplit[-1]
+			Log("Moviename from folder (withYear): " + moviename)
 		else:
-			moviename = '/' + '/'.join(foldersplit) + '/' + re.sub (r' \(.*\)',r'',foldersplit[-1])
-		Log("Moviename from folder: " + moviename)
+			if foldersplit[-1] == 'VIDEO_TS':
+				moviename = '/'.join(foldersplit[1:len(foldersplit)-1:]) + '/' + re.sub (r' \(.*\)',r'',foldersplit[-2])
+			else:
+				moviename = '/'.join(foldersplit) + '/' + re.sub (r' \(.*\)',r'',foldersplit[-1])
+			Log("Moviename from folder: " + moviename)
 		return moviename
 
 	def checkFilePaths(self, pathfns, ftype):
@@ -50,12 +60,15 @@ class xbmcnfo(Agent.Movies):
 		Log('folderpath: ' + folderpath)
 		
 
+		# Moviename with year from folder
+		movienamewithyear = self.getMovieNameFromFolder (folderpath, True)
 		# Moviename from folder
-		moviename = self.getMovieNameFromFolder (folderpath)
+		moviename = self.getMovieNameFromFolder (folderpath, False)
 
 		nfoNames = []
 		# Eden / Frodo
 		nfoNames.append (self.getRelatedFile(path1, '.nfo'))
+		nfoNames.append (movienamewithyear + '.nfo')
 		nfoNames.append (moviename + '.nfo')
 		# VIDEO_TS
 		nfoNames.append (folderpath + '/video_ts.nfo')
@@ -113,13 +126,16 @@ class xbmcnfo(Agent.Movies):
 		Log("++++++++++++++++++++++++")
 
 		path1 = media.items[0].parts[0].file
+		Log('media file: ' + path1)
 		folderpath = os.path.dirname(path1)
 		Log('folderpath: ' + folderpath)
 		isDVD = os.path.basename(folderpath).upper() == 'VIDEO_TS'
 		if isDVD: folderpathDVD = os.path.dirname(folderpath)
 
+		# Moviename with year from folder
+		movienamewithyear = self.getMovieNameFromFolder (folderpath, True)
 		# Moviename from folder
-		moviename = self.getMovieNameFromFolder (folderpath)
+		moviename = self.getMovieNameFromFolder (folderpath, False)
 
 		posterData = None
 		posterFilename = ""
@@ -132,6 +148,7 @@ class xbmcnfo(Agent.Movies):
 		if isDVD: posterNames.append (folderpathDVD + '/folder.jpg')
 		# Frodo
 		posterNames.append (self.getRelatedFile(path1, '-poster.jpg'))
+		posterNames.append (movienamewithyear + '-poster.jpg')
 		posterNames.append (moviename + '-poster.jpg')
 		posterNames.append (folderpath + '/poster.jpg')
 		if isDVD: posterNames.append (folderpathDVD + '/poster.jpg')
