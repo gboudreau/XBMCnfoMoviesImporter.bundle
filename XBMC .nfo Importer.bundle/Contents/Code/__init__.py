@@ -19,7 +19,8 @@ class xbmcnfo(Agent.Movies):
 	def getRelatedFile(self, videoFile, fileExtension):
 		videoFileExtension = videoFile.split(".")[-1]
 		videoFileBase = videoFile.replace('.' + videoFileExtension, '')
-		videoFileBase = re.sub(r'(?is)\s*\-\s*(cd|dvd|disc|disk|part|pt)\s*[0-9]$', '', videoFileBase)
+		videoFileBase = re.sub(r'(?is)\s*\-\s*(cd|dvd|disc|disk|part|pt|d)\s*[0-9]$', '', videoFileBase)
+		videoFileBase = re.sub(r'(?is)\s*\-\s*(cd|dvd|disc|disk|part|pt|d)\s*[a-d]$', '', videoFileBase)
 		return (videoFileBase + fileExtension)
 
 	def getMovieNameFromFolder(self, folderpath, withYear):
@@ -140,18 +141,18 @@ class xbmcnfo(Agent.Movies):
 		posterData = None
 		posterFilename = ""
 		posterNames = []
-		# DLNA
-		posterNames.append (self.getRelatedFile(path1, '.jpg'))
-		# Eden
-		posterNames.append (self.getRelatedFile(path1, '.tbn'))
-		posterNames.append (folderpath + "/folder.jpg")
-		if isDVD: posterNames.append (folderpathDVD + '/folder.jpg')
 		# Frodo
 		posterNames.append (self.getRelatedFile(path1, '-poster.jpg'))
 		posterNames.append (movienamewithyear + '-poster.jpg')
 		posterNames.append (moviename + '-poster.jpg')
 		posterNames.append (folderpath + '/poster.jpg')
 		if isDVD: posterNames.append (folderpathDVD + '/poster.jpg')
+		# Eden
+		posterNames.append (self.getRelatedFile(path1, '.tbn'))
+		posterNames.append (folderpath + "/folder.jpg")
+		if isDVD: posterNames.append (folderpathDVD + '/folder.jpg')
+		# DLNA
+		posterNames.append (self.getRelatedFile(path1, '.jpg'))
 		# Others
 		posterNames.append (folderpath + "/cover.jpg")
 		if isDVD: posterNames.append (folderpathDVD + '/cover.jpg')
@@ -244,6 +245,9 @@ class xbmcnfo(Agent.Movies):
 					else:
 						content_rating = 'NR'
 					metadata.content_rating = content_rating
+				except:
+					content_rating = nfoXML.xpath('certification')[0].text
+					metadata.content_rating = content_rating
 				except: pass
 				# Studio
 				try: metadata.studio = nfoXML.xpath("studio")[0].text
@@ -251,6 +255,8 @@ class xbmcnfo(Agent.Movies):
 				# Premiere
 				try:
 					try:
+						release_date = Datetime.ParseDate(nfoXML.xpath("releasedate")[0].text).date()
+					except:
 						release_date = time.strptime(nfoXML.xpath("releasedate")[0].text, "%d %B %Y")
 					except:
 						release_date = time.strptime(nfoXML.xpath("releasedate")[0].text, "%Y-%m-%d")
@@ -264,11 +270,17 @@ class xbmcnfo(Agent.Movies):
 				except: pass
 				# Summary (Outline/Plot)
 				try:
+					if Prefs['plot']:
+						stype1 = 'plot'
+						stype2 = 'outline'
+					else:
+						stype1 ='outline'
+						stype2 = 'plot'
 					try:
-						summary = nfoXML.xpath('outline')[0].text.strip('| \t\r\n')
+						summary = nfoXML.xpath(stype1)[0].text.strip('| \t\r\n')
 						if not summary: raise
 					except:
-						summary = nfoXML.xpath('plot')[0].text.strip('| \t\r\n')
+						summary = nfoXML.xpath(stype2)[0].text.strip('| \t\r\n')
 					metadata.summary = summary
 				except: pass
 				# Writers (Credits)
@@ -322,52 +334,13 @@ class xbmcnfo(Agent.Movies):
 					
 				# Remote posters and fanarts are disabled for now; having them seems to stop the local artworks from being used.
 				#(remote) posters
-				#try:
-				#	posters = nfoXML.xpath('./thumb')
-				#	for posterXML in posters:
-				#		url = posterXML.text
-				#		previewUrl = posterXML.get('preview')
-				#		Log("Found (remote) poster at: " + previewUrl + " > " + url)
-				#		metadata.posters[url] = Proxy.Preview(previewUrl)
-				#except: pass
 				#(local) poster
 				if posterData:
 					metadata.posters[posterFilename] = Proxy.Media(posterData)
 				#(remote) fanart
-				#try:
-				#	arts = nfoXML.xpath('./fanart/thumb')
-				#	for artXML in arts:
-				#		url = artXML.text
-				#		previewUrl = artXML.get('preview')
-				#		Log("Found (remote) fanart at: " + previewUrl + " > " + url)
-				#		metadata.art[url] = Proxy.Preview(previewUrl)
-				#except: pass
 				#(local) fanart
 				if fanartData:
 					metadata.art[fanartFilename] = Proxy.Media(fanartData)
-				
-				# Log("---------------------")
-				# Log("Movie nfo Information")
-				# Log("---------------------")
-				# Log("Title: " + str(metadata.title))
-				# Log("id: " + str(metadata.guid))
-				# Log("Summary: " + str(metadata.summary))
-				# Log("Year: " + str(metadata.year))
-				# Log("IMDB rating: " + str(metadata.rating)) 
-				# Log("Content Rating: " + str(metadata.content_rating))
-				# Log("Directors")
-				# for d in metadata.directors:
-					# Log("  " + d)
-				# Log("Studio: " + str(metadata.studio))
-				# Log("Duration: " + str(metadata.duration))
-				# Log("Actors")
-				# for r in metadata.roles:
-					# try: Log("  " + r.actor + " as " + r.role)
-					# except: pass
-				# Log("Genres")
-				# for r in metadata.genres:
-					# Log("  " + r)
-				# Log("---------------------")
 				
 				Log("---------------------")
 				Log("Movie nfo Information")

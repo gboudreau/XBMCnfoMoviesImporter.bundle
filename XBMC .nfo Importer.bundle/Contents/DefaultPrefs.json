@@ -1,0 +1,8 @@
+[
+  {
+    "id":"plot",
+    "label":"use plot instead of outline",
+    "type":"bool",
+    "default":"false"
+  }
+]
