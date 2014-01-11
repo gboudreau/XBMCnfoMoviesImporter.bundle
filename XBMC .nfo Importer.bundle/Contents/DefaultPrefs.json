@@ -1,5 +1,11 @@
 [
   {
+    "id":"debug",
+    "label":"enable debug logging",
+    "type":"bool",
+    "default":"false"
+  },
+  {
     "id":"plot",
     "label":"use plot instead of outline",
     "type":"bool",
