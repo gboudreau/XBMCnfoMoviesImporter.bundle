@@ -119,7 +119,12 @@ class xbmcnfo(Agent.Movies):
 					id = nfoXML.xpath('id')[0].text
 					if len(id) > 2:
 						media.id = id
-				except: pass
+				except:
+					# if movie id doesn't exist, create
+					# one based on hash of title
+					ord3 = lambda x : '%.3d' % ord(x) 
+					id = int(''.join(map(ord3, media.name)))
+					id = str(abs(hash(int(id))))
 
 				results.Append(MetadataSearchResult(id=media.id, name=media.name, year=media.year, lang=lang, score=100))
 				try: Log('Found movie information in NFO file: title = ' + media.name + ', year = ' + str(media.year) + ', id = ' + media.id)
