@@ -84,7 +84,7 @@ class xbmcnfo(Agent.Movies):
 		nfoNames.append (folderpath + self.pc + 'movie.nfo')
 		# last resort - use first found .nfo
 		nfoFiles = [f for f in os.listdir(folderpath) if f.endswith('.nfo')]
-		nfoNames.append (folderpath + self.pc + nfoFiles[0])
+		if nfoFiles: nfoNames.append (folderpath + self.pc + nfoFiles[0])
 
 		# check possible .nfo file locations
 		nfoFile = self.checkFilePaths (nfoNames, '.nfo')
@@ -219,7 +219,7 @@ class xbmcnfo(Agent.Movies):
 		nfoNames.append (folderpath + self.pc + 'movie.nfo')
 		# last resort - use first found .nfo
 		nfoFiles = [f for f in os.listdir(folderpath) if f.endswith('.nfo')]
-		nfoNames.append (folderpath + self.pc + nfoFiles[0])
+		if nfoFiles: nfoNames.append (folderpath + self.pc + nfoFiles[0])
 
 		# check possible .nfo file locations
 		nfoFile = self.checkFilePaths (nfoNames, '.nfo')
