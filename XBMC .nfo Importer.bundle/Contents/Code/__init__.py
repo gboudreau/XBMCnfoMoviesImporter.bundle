@@ -116,15 +116,21 @@ class xbmcnfo(Agent.Movies):
 				except: pass
 				# ID
 				try:
-					id = nfoXML.xpath('id')[0].text
-					if len(id) > 2:
-						media.id = id
+					id = nfoXML.xpath('id')[0].text.strip()
 				except:
+					id=""
+					pass
+				if len(id) > 2:
+						media.id = id
+						self.DLog("ID from nfo: " + media.id)
+				else:
 					# if movie id doesn't exist, create
 					# one based on hash of title
 					ord3 = lambda x : '%.3d' % ord(x) 
 					id = int(''.join(map(ord3, media.name)))
 					id = str(abs(hash(int(id))))
+					media.id = id
+					self.DLog("ID generated: " + media.id)
 
 				results.Append(MetadataSearchResult(id=media.id, name=media.name, year=media.year, lang=lang, score=100))
 				try: Log('Found movie information in NFO file: title = ' + media.name + ', year = ' + str(media.year) + ', id = ' + media.id)
@@ -140,6 +146,7 @@ class xbmcnfo(Agent.Movies):
 
 		self.pc = '\\' if platform.system() == 'Windows' else '/'
 
+		parse_date = lambda s: Datetime.ParseDate(s).date()
 		path1 = media.items[0].parts[0].file
 		self.DLog('media file: ' + path1)
 		folderpath = os.path.dirname(path1)
@@ -239,22 +246,22 @@ class xbmcnfo(Agent.Movies):
 					return
 
 				# Title
-				try: metadata.title = nfoXML.xpath('title')[0].text
+				try: metadata.title = nfoXML.xpath('title')[0].text.strip()
 				except:
 					self.DLog("ERROR: No <title> tag in " + nfoFile + ". Aborting!")
 					return
 				# Year
-				try: metadata.year = int(nfoXML.xpath("year")[0].text)
+				try: metadata.year = int(nfoXML.xpath("year")[0].text.strip())
 				except: pass
 				# Original Title
-				try: metadata.original_title = nfoXML.xpath('originaltitle')[0].text
+				try: metadata.original_title = nfoXML.xpath('originaltitle')[0].text.strip()
 				except: pass
 				# Rating
-				try: metadata.rating = float(nfoXML.xpath('rating')[0].text.replace(',', '.'))
+				try: metadata.rating = float(nfoXML.xpath('rating')[0].text.strip().replace(',', '.'))
 				except: pass
 				# Content Rating
 				try:
-					mpaa = nfoXML.xpath('./mpaa')[0].text
+					mpaa = nfoXML.xpath('./mpaa')[0].text.strip()
 					match = re.match(r'(?:Rated\s)?(?P<mpaa>[A-z0-9-+/.]+(?:\s[0-9]+[A-z]?)?)?', mpaa)
 					if match.group('mpaa'):
 						content_rating = match.group('mpaa')
@@ -262,57 +269,47 @@ class xbmcnfo(Agent.Movies):
 						content_rating = 'NR'
 					metadata.content_rating = content_rating
 				except:
-					content_rating = nfoXML.xpath('certification')[0].text
+					content_rating = nfoXML.xpath('certification')[0].text.strip()
 					metadata.content_rating = content_rating
 				except: pass
 				# Studio
-				try: metadata.studio = nfoXML.xpath("studio")[0].text
+				try: metadata.studio = nfoXML.xpath("studio")[0].text.strip()
 				except: pass
 				# Premiere
 				try:
+					release_string = None
 					try:
 						self.DLog("Reading releasedate tag...")
-						release_string = nfoXML.xpath("releasedate")[0].text
+						release_string = nfoXML.xpath("releasedate")[0].text.strip()
+						self.DLog("Releasedate tag is: " + release_string)
 					except:
 						self.DLog("No releasedate tag found...")
 						pass
+					if not release_string:
+						try:
+							self.DLog("Reading dateadded tag...")
+							release_string = nfoXML.xpath("dateadded")[0].text.strip()
+							self.DLog("Dateadded tag is: " + release_string)
+						except:
+							self.DLog("No dateadded tag found...")
+							pass
 					if release_string:
-						release_date = None
-						try:
-							self.DLog("Releasedate parsing with dBY...")
-							release_date = time.strptime(nfoXML.xpath("releasedate")[0].text, "%d %B %Y")
-						except: pass
-						try:
-							if not release_date:
-								self.DLog("Releasedate parsing with Ymd...")
-								release_date = time.strptime(nfoXML.xpath("releasedate")[0].text, "%Y-%m-%d")
-						except: pass
-						try:
-							if not release_date:
-								self.DLog("Releasedate parsing with dmY...")
-								release_date = time.strptime(nfoXML.xpath("releasedate")[0].text, "%d.%m.%Y")
-						except: pass
-						try:
-							if not release_date:
-								self.DLog("Releasedate plaintext without parsing...")
-								release_date = nfoXML.xpath("releasedate")[0].text
-						except: pass
-						try:
-							if not release_date:
-								self.DLog("Fallback to year tag instead...")
-								release_date = time.strptime(str(metadata.year) + "-01-01", "%Y-%m-%d")
-						except: pass
-						try:
-							if not release_date:
-								self.DLog("Fallback to dateadded instead...")
-								release_date = time.strptime(nfoXML.xpath("dateadded")[0].text, "%Y-%m-%d")
-						except: pass
-						if release_date:
-							metadata.originally_available_at = datetime.datetime.fromtimestamp(time.mktime(release_date)).date()
-				except Exception:
-					self.DLog("Exception: " + traceback.format_exc())
+						release_date = parse_date(release_string)
+				except:
+					self.DLog("Exception parsing releasedate: " + traceback.format_exc())
+					pass
+				try:
+					if not release_date:
+						self.DLog("Fallback to year tag instead...")
+						release_date = time.strptime(str(metadata.year) + "-01-01", "%Y-%m-%d")
+						metadata.originally_available_at = datetime.datetime.fromtimestamp(time.mktime(release_date)).date()
+					else:
+						self.DLog("Setting releasedate...")
+						metadata.originally_available_at = release_date
+				except: pass
+
 				# Tagline
-				try: metadata.tagline = nfoXML.xpath("tagline")[0].text
+				try: metadata.tagline = nfoXML.xpath("tagline")[0].text.strip()
 				except: pass
 				# Summary (Outline/Plot)
 				try:
@@ -366,7 +363,7 @@ class xbmcnfo(Agent.Movies):
 				except: pass
 				# Duration
 				try:
-					runtime = nfoXML.xpath("runtime")[0].text
+					runtime = nfoXML.xpath("runtime")[0].text.strip()
 					metadata.duration = int(re.compile('^([0-9]+)').findall(runtime)[0]) * 60 * 1000 # ms
 				except: pass
 				# Actors
