@@ -125,9 +125,9 @@ class xbmcnfo(Agent.Movies):
 						self.DLog("ID from nfo: " + media.id)
 				else:
 					# if movie id doesn't exist, create
-					# one based on hash of title
+					# one based on hash of title and year
 					ord3 = lambda x : '%.3d' % ord(x) 
-					id = int(''.join(map(ord3, media.name)))
+					id = int(''.join(map(ord3, media.name+str(media.year))))
 					id = str(abs(hash(int(id))))
 					media.id = id
 					self.DLog("ID generated: " + media.id)
@@ -314,18 +314,24 @@ class xbmcnfo(Agent.Movies):
 				# Summary (Outline/Plot)
 				try:
 					if Prefs['plot']:
+						self.DLog("User setting forces plot before outline...")
 						stype1 = 'plot'
 						stype2 = 'outline'
 					else:
+						self.DLog("Default setting forces outline before plot...")
 						stype1 ='outline'
 						stype2 = 'plot'
 					try:
 						summary = nfoXML.xpath(stype1)[0].text.strip('| \t\r\n')
-						if not summary: raise
+						if not summary:
+							self.DLog("No or empty " + stype1 + " tag. Fallback to " + stype2 +"...")
+							raise
 					except:
 						summary = nfoXML.xpath(stype2)[0].text.strip('| \t\r\n')
 					metadata.summary = summary
-				except: pass
+				except:
+					self.DLog("Exception on reading summary!")
+					pass
 				# Writers (Credits)
 				try: 
 					credits = nfoXML.xpath('credits')
