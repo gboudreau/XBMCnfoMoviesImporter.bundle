@@ -6,6 +6,7 @@
 # Eden and Frodo compatibility added by Jorge Amigo
 # Cleanup and some extensions by SlrG
 # Multipart filter idea by diamondsw
+# Logo by CrazyRabbit
 #
 import os, re, time, datetime, platform, traceback
 
