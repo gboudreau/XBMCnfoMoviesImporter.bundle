@@ -56,6 +56,18 @@ class xbmcnfo(Agent.Movies):
 		else:
 			Log("No " + ftype + " file found! Aborting!")
 
+	def RemoveEmptyTags(self, xmltags):
+		for xmltag in xmltags.iter("*"):
+			if len(xmltag):
+				continue
+			if not (xmltag.text and xmltag.text.strip()):
+				#self.DLog("Removing empty XMLTag: " + xmltag.tag)
+				xmltag.getparent().remove(xmltag)
+		return xmltags
+
+	def FloatRound(self, x):
+		return x + 0.5 / 2 - ((x + 0.5 / 2) % 0.5)
+
 ##### search function #####
 	def search(self, results, media, lang):
 		self.DLog("++++++++++++++++++++++++")
@@ -246,6 +258,10 @@ class xbmcnfo(Agent.Movies):
 					self.DLog('ERROR: Cant parse XML in ' + nfoFile + '. Aborting!')
 					return
 
+				#remove empty xml tags
+				self.DLog('Removing empty XML tags from tvshows nfo...')
+				nfoXML = self.RemoveEmptyTags(nfoXML)
+
 				# Title
 				try: metadata.title = nfoXML.xpath('title')[0].text.strip()
 				except:
@@ -258,7 +274,12 @@ class xbmcnfo(Agent.Movies):
 				try: metadata.original_title = nfoXML.xpath('originaltitle')[0].text.strip()
 				except: pass
 				# Rating
-				try: metadata.rating = float(nfoXML.xpath('rating')[0].text.strip().replace(',', '.'))
+				try:
+					rating = float(nfoXML.xpath("rating")[0].text.replace(',', '.'))
+					if Prefs['fround']:
+						metadata.rating = self.FloatRound(rating)
+					else:
+						metadata.rating = rating
 				except: pass
 				# Content Rating
 				try:
@@ -270,9 +291,10 @@ class xbmcnfo(Agent.Movies):
 						content_rating = 'NR'
 					metadata.content_rating = content_rating
 				except:
-					content_rating = nfoXML.xpath('certification')[0].text.strip()
-					metadata.content_rating = content_rating
-				except: pass
+					try:
+						content_rating = nfoXML.xpath('certification')[0].text.strip()
+						metadata.content_rating = content_rating
+					except: pass
 				# Studio
 				try: metadata.studio = nfoXML.xpath("studio")[0].text.strip()
 				except: pass
