@@ -310,6 +310,14 @@ class xbmcnfo(Agent.Movies):
 						pass
 					if not release_string:
 						try:
+							self.DLog("Reading premiered tag...")
+							release_string = nfoXML.xpath("premiered")[0].text.strip()
+							self.DLog("Premiered tag is: " + release_string)
+						except:
+							self.DLog("No premiered tag found...")
+							pass
+					if not release_string:
+						try:
 							self.DLog("Reading dateadded tag...")
 							release_string = nfoXML.xpath("dateadded")[0].text.strip()
 							self.DLog("Dateadded tag is: " + release_string)
