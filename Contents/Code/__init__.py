@@ -12,6 +12,7 @@ import os, re, time, datetime, platform, traceback
 
 class xbmcnfo(Agent.Movies):
 	name = 'XBMCnfoMoviesImporter'
+	version = '1.0-0-g5e9506d-86'
 	primary_provider = True
 	languages = [Locale.Language.NoLanguage]
 	accepts_from = ['com.plexapp.agents.localmedia']
@@ -73,6 +74,7 @@ class xbmcnfo(Agent.Movies):
 		self.DLog("++++++++++++++++++++++++")
 		self.DLog("Entering search function")
 		self.DLog("++++++++++++++++++++++++")
+		Log ("" + self.name + " Version: " + self.version)
 
 		self.pc = '\\' if platform.system() == 'Windows' else '/'
 
@@ -156,6 +158,7 @@ class xbmcnfo(Agent.Movies):
 		self.DLog("++++++++++++++++++++++++")
 		self.DLog("Entering update function")
 		self.DLog("++++++++++++++++++++++++")
+		Log ("" + self.name + " Version: " + self.version)
 
 		self.pc = '\\' if platform.system() == 'Windows' else '/'
 
