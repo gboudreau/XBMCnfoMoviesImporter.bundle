@@ -12,7 +12,7 @@ import os, re, time, datetime, platform, traceback
 
 class xbmcnfo(Agent.Movies):
 	name = 'XBMCnfoMoviesImporter'
-	version = '1.0-2-g3333e09-88'
+	version = '1.0-4-g1ed1a32-90'
 	primary_provider = True
 	languages = [Locale.Language.NoLanguage]
 	accepts_from = ['com.plexapp.agents.localmedia','com.plexapp.agents.opensubtitles','com.plexapp.agents.podnapisi']
@@ -403,9 +403,20 @@ class xbmcnfo(Agent.Movies):
 				except: pass
 				# Duration
 				try:
-					runtime = nfoXML.xpath("runtime")[0].text.strip()
-					metadata.duration = int(re.compile('^([0-9]+)').findall(runtime)[0]) * 60 * 1000 # ms
-				except: pass
+					self.DLog ("Trying to read <durationinseconds> tag from .nfo file...")
+					fileinfoXML = XML.ElementFromString(nfoText).xpath('fileinfo')[0]
+					streamdetailsXML = fileinfoXML.xpath('streamdetails')[0]
+					videoXML = streamdetailsXML.xpath('video')[0]
+					runtime = videoXML.xpath("durationinseconds")[0].text.strip()
+					metadata.duration = int(re.compile('^([0-9]+)').findall(runtime)[0]) * 1000 # s
+				except:
+					try:
+						self.DLog ("Fallback to <runtime> tag from .nfo file...")
+						runtime = nfoXML.xpath("runtime")[0].text.strip()
+						metadata.duration = int(re.compile('^([0-9]+)').findall(runtime)[0]) * 60 * 1000 # ms
+					except:
+						self.DLog("No Duration in .nfo file.")
+						pass
 				# Actors
 				metadata.roles.clear()
 				for actor in nfoXML.xpath('actor'):
