@@ -12,7 +12,7 @@ import os, re, time, datetime, platform, traceback
 
 class xbmcnfo(Agent.Movies):
 	name = 'XBMCnfoMoviesImporter'
-	version = '1.0-4-g1ed1a32-90'
+	version = '1.0-6-g93c7ec4-92'
 	primary_provider = True
 	languages = [Locale.Language.NoLanguage]
 	accepts_from = ['com.plexapp.agents.localmedia','com.plexapp.agents.opensubtitles','com.plexapp.agents.podnapisi']
@@ -276,14 +276,6 @@ class xbmcnfo(Agent.Movies):
 				# Original Title
 				try: metadata.original_title = nfoXML.xpath('originaltitle')[0].text.strip()
 				except: pass
-				# Rating
-				try:
-					rating = float(nfoXML.xpath("rating")[0].text.replace(',', '.'))
-					if Prefs['fround']:
-						metadata.rating = self.FloatRound(rating)
-					else:
-						metadata.rating = rating
-				except: pass
 				# Content Rating
 				try:
 					mpaa = nfoXML.xpath('./mpaa')[0].text.strip()
@@ -366,6 +358,20 @@ class xbmcnfo(Agent.Movies):
 				except:
 					self.DLog("Exception on reading summary!")
 					pass
+				# Rating
+				try:
+					nforating = float(nfoXML.xpath("rating")[0].text.replace(',', '.'))
+					if Prefs['fround']:
+						rating = self.FloatRound(nforating)
+					else:
+						rating = nforating
+					if Prefs['preserverating']:
+						self.DLog("Putting .nfo rating in front of summary!")
+						metadata.summary = "*** Official rating: " + "{:.1f}".format(nforating)  + " *** | " + metadata.summary
+						metadata.rating = rating
+					else:
+						metadata.rating = rating
+				except: pass
 				# Writers (Credits)
 				try: 
 					credits = nfoXML.xpath('credits')
