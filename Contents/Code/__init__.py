@@ -12,7 +12,7 @@ import os, re, time, datetime, platform, traceback
 
 class xbmcnfo(Agent.Movies):
 	name = 'XBMCnfoMoviesImporter'
-	version = '1.0-6-g93c7ec4-92'
+	version = '1.0-8-gbb30a0f-94'
 	primary_provider = True
 	languages = [Locale.Language.NoLanguage]
 	accepts_from = ['com.plexapp.agents.localmedia','com.plexapp.agents.opensubtitles','com.plexapp.agents.podnapisi']
@@ -367,7 +367,7 @@ class xbmcnfo(Agent.Movies):
 						rating = nforating
 					if Prefs['preserverating']:
 						self.DLog("Putting .nfo rating in front of summary!")
-						metadata.summary = "*** Official rating: " + "{:.1f}".format(nforating)  + " *** | " + metadata.summary
+						metadata.summary = str(Prefs['beforerating']) + "{:.1f}".format(nforating) + str(Prefs['afterrating']) + metadata.summary
 						metadata.rating = rating
 					else:
 						metadata.rating = rating
