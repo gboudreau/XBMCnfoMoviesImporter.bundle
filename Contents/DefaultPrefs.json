@@ -25,14 +25,14 @@
   },
   {
     "id":"beforerating",
-    "label":"text before rating:",
+    "label":"text before rating (supports html specialchars!):",
     "type":"text",
-    "default":"* Official rating: ",
+    "default":"&#9733; ",
   },
   {
     "id":"afterrating",
-    "label":"text after rating:",
+    "label":"text after rating (supports html specialchars!):",
     "type":"text",
-    "default":"/10 * | ",
+    "default":"/10 | ",
   }
 ]

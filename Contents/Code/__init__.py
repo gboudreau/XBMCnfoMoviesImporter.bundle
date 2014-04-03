@@ -8,11 +8,11 @@
 # Multipart filter idea by diamondsw
 # Logo by CrazyRabbit
 #
-import os, re, time, datetime, platform, traceback
+import os, re, time, datetime, platform, traceback, re, htmlentitydefs
 
 class xbmcnfo(Agent.Movies):
 	name = 'XBMCnfoMoviesImporter'
-	version = '1.0-8-gbb30a0f-94'
+	version = '1.0-10-g11fd1de-96'
 	primary_provider = True
 	languages = [Locale.Language.NoLanguage]
 	accepts_from = ['com.plexapp.agents.localmedia','com.plexapp.agents.opensubtitles','com.plexapp.agents.podnapisi']
@@ -68,6 +68,33 @@ class xbmcnfo(Agent.Movies):
 
 	def FloatRound(self, x):
 		return x + 0.5 / 2 - ((x + 0.5 / 2) % 0.5)
+
+	##
+	# Removes HTML or XML character references and entities from a text string.
+	# Copyright: http://effbot.org/zone/re-sub.htm October 28, 2006 | Fredrik Lundh
+	# @param text The HTML (or XML) source text.
+	# @return The plain text, as a Unicode string, if necessary.
+
+	def unescape(self, text):
+		def fixup(m):
+			text = m.group(0)
+			if text[:2] == "&#":
+				# character reference
+				try:
+					if text[:3] == "&#x":
+						return unichr(int(text[3:-1], 16))
+					else:
+						return unichr(int(text[2:-1]))
+				except ValueError:
+					pass
+			else:
+				# named entity
+				try:
+					text = unichr(htmlentitydefs.name2codepoint[text[1:-1]])
+				except KeyError:
+					pass
+			return text # leave as is
+		return re.sub("&#?\w+;", fixup, text)
 
 ##### search function #####
 	def search(self, results, media, lang):
@@ -367,7 +394,7 @@ class xbmcnfo(Agent.Movies):
 						rating = nforating
 					if Prefs['preserverating']:
 						self.DLog("Putting .nfo rating in front of summary!")
-						metadata.summary = str(Prefs['beforerating']) + "{:.1f}".format(nforating) + str(Prefs['afterrating']) + metadata.summary
+						metadata.summary = self.unescape(str(Prefs['beforerating'])) + "{:.1f}".format(nforating) + self.unescape(str(Prefs['afterrating'])) + metadata.summary
 						metadata.rating = rating
 					else:
 						metadata.rating = rating
