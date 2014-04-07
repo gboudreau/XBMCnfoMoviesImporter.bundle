@@ -12,7 +12,7 @@ import os, re, time, datetime, platform, traceback, re, htmlentitydefs
 
 class xbmcnfo(Agent.Movies):
 	name = 'XBMCnfoMoviesImporter'
-	version = '1.0-10-g11fd1de-96'
+	version = '1.0-12-g27a9fad-98'
 	primary_provider = True
 	languages = [Locale.Language.NoLanguage]
 	accepts_from = ['com.plexapp.agents.localmedia','com.plexapp.agents.opensubtitles','com.plexapp.agents.podnapisi']
