@@ -12,11 +12,10 @@ import os, re, time, datetime, platform, traceback, re, htmlentitydefs
 
 class xbmcnfo(Agent.Movies):
 	name = 'XBMCnfoMoviesImporter'
-	version = '1.0-12-g27a9fad-98'
+	version = '1.0-14-g3d4864d-100'
 	primary_provider = True
 	languages = [Locale.Language.NoLanguage]
 	accepts_from = ['com.plexapp.agents.localmedia','com.plexapp.agents.opensubtitles','com.plexapp.agents.podnapisi']
-	pc = '/';
 
 ##### helper functions #####
 	def DLog (self, LogMessage):
@@ -31,18 +30,18 @@ class xbmcnfo(Agent.Movies):
 		return (videoFileBase + fileExtension)
 
 	def getMovieNameFromFolder(self, folderpath, withYear):
-		foldersplit = folderpath.split (self.pc)
+		foldersplit = folderpath.split (os.pathsep)
 		if withYear == True:
 			if foldersplit[-1] == 'VIDEO_TS':
-				moviename = self.pc.join(foldersplit[1:len(foldersplit)-1:]) + self.pc + foldersplit[-2]
+				moviename = os.pathsep.join(foldersplit[1:len(foldersplit)-1:]) + os.pathsep + foldersplit[-2]
 			else:
-				moviename = self.pc.join(foldersplit) + self.pc + foldersplit[-1]
+				moviename = os.pathsep.join(foldersplit) + os.pathsep + foldersplit[-1]
 			self.DLog("Moviename from folder (withYear): " + moviename)
 		else:
 			if foldersplit[-1] == 'VIDEO_TS':
-				moviename = self.pc.join(foldersplit[1:len(foldersplit)-1:]) + self.pc + re.sub (r' \(.*\)',r'',foldersplit[-2])
+				moviename = os.pathsep.join(foldersplit[1:len(foldersplit)-1:]) + os.pathsep + re.sub (r' \(.*\)',r'',foldersplit[-2])
 			else:
-				moviename = self.pc.join(foldersplit) + self.pc + re.sub (r' \(.*\)',r'',foldersplit[-1])
+				moviename = os.pathsep.join(foldersplit) + os.pathsep + re.sub (r' \(.*\)',r'',foldersplit[-1])
 			self.DLog("Moviename from folder: " + moviename)
 		return moviename
 
@@ -103,8 +102,6 @@ class xbmcnfo(Agent.Movies):
 		self.DLog("++++++++++++++++++++++++")
 		Log ("" + self.name + " Version: " + self.version)
 
-		self.pc = '\\' if platform.system() == 'Windows' else '/'
-
 		path1 = String.Unquote(media.filename)
 		folderpath = os.path.dirname(path1)
 		self.DLog('folderpath: ' + folderpath)
@@ -121,12 +118,12 @@ class xbmcnfo(Agent.Movies):
 		nfoNames.append (movienamewithyear + '.nfo')
 		nfoNames.append (moviename + '.nfo')
 		# VIDEO_TS
-		nfoNames.append (folderpath + self.pc + 'video_ts.nfo')
+		nfoNames.append (os.path.join(folderpath, 'video_ts.nfo'))
 		# movie.nfo (e.g. FilmInfo!Organizer users)
-		nfoNames.append (folderpath + self.pc + 'movie.nfo')
+		nfoNames.append (os.path.join(folderpath, 'movie.nfo'))
 		# last resort - use first found .nfo
 		nfoFiles = [f for f in os.listdir(folderpath) if f.endswith('.nfo')]
-		if nfoFiles: nfoNames.append (folderpath + self.pc + nfoFiles[0])
+		if nfoFiles: nfoNames.append (os.path.join(folderpath, nfoFiles[0]))
 
 		# check possible .nfo file locations
 		nfoFile = self.checkFilePaths (nfoNames, '.nfo')
@@ -187,8 +184,6 @@ class xbmcnfo(Agent.Movies):
 		self.DLog("++++++++++++++++++++++++")
 		Log ("" + self.name + " Version: " + self.version)
 
-		self.pc = '\\' if platform.system() == 'Windows' else '/'
-
 		parse_date = lambda s: Datetime.ParseDate(s).date()
 		path1 = media.items[0].parts[0].file
 		self.DLog('media file: ' + path1)
@@ -209,21 +204,21 @@ class xbmcnfo(Agent.Movies):
 		posterNames.append (self.getRelatedFile(path1, '-poster.jpg'))
 		posterNames.append (movienamewithyear + '-poster.jpg')
 		posterNames.append (moviename + '-poster.jpg')
-		posterNames.append (folderpath + self.pc + 'poster.jpg')
-		if isDVD: posterNames.append (folderpathDVD + self.pc + 'poster.jpg')
+		posterNames.append (os.path.join(folderpath, 'poster.jpg'))
+		if isDVD: posterNames.append (os.path.join(folderpathDVD, 'poster.jpg'))
 		# Eden
 		posterNames.append (self.getRelatedFile(path1, '.tbn'))
 		posterNames.append (folderpath + "/folder.jpg")
-		if isDVD: posterNames.append (folderpathDVD + self.pc + 'folder.jpg')
+		if isDVD: posterNames.append (os.path.join(folderpathDVD, 'folder.jpg'))
 		# DLNA
 		posterNames.append (self.getRelatedFile(path1, '.jpg'))
 		# Others
 		posterNames.append (folderpath + "/cover.jpg")
-		if isDVD: posterNames.append (folderpathDVD + self.pc + 'cover.jpg')
+		if isDVD: posterNames.append (os.path.join(folderpathDVD, 'cover.jpg'))
 		posterNames.append (folderpath + "/default.jpg")
-		if isDVD: posterNames.append (folderpathDVD + self.pc + 'default.jpg')
+		if isDVD: posterNames.append (os.path.join(folderpathDVD, 'default.jpg'))
 		posterNames.append (folderpath + "/movie.jpg")
-		if isDVD: posterNames.append (folderpathDVD + self.pc + 'movie.jpg')
+		if isDVD: posterNames.append (os.path.join(folderpathDVD, 'movie.jpg'))
 
 		# check possible poster file locations
 		posterFilename = self.checkFilePaths (posterNames, 'poster')
@@ -240,15 +235,15 @@ class xbmcnfo(Agent.Movies):
 		fanartNames.append (self.getRelatedFile(path1, '-fanart.jpg'))
 		fanartNames.append (movienamewithyear + '-fanart.jpg')
 		fanartNames.append (moviename + '-fanart.jpg')
-		fanartNames.append (folderpath + self.pc + 'fanart.jpg')
-		if isDVD: fanartNames.append (folderpathDVD + self.pc + 'fanart.jpg')
+		fanartNames.append (os.path.join(folderpath, 'fanart.jpg'))
+		if isDVD: fanartNames.append (os.path.join(folderpathDVD, 'fanart.jpg'))
 		# Others
-		fanartNames.append (folderpath + self.pc + 'art.jpg')
-		if isDVD: fanartNames.append (folderpathDVD + self.pc + 'art.jpg')
-		fanartNames.append (folderpath + self.pc + 'backdrop.jpg')
-		if isDVD: fanartNames.append (folderpathDVD + self.pc + 'backdrop.jpg')
-		fanartNames.append (folderpath + self.pc + 'background.jpg')
-		if isDVD: fanartNames.append (folderpathDVD + self.pc + 'background.jpg')
+		fanartNames.append (os.path.join(folderpath, 'art.jpg'))
+		if isDVD: fanartNames.append (os.path.join(folderpathDVD, 'art.jpg'))
+		fanartNames.append (os.path.join(folderpath, 'backdrop.jpg'))
+		if isDVD: fanartNames.append (os.path.join(folderpathDVD, 'backdrop.jpg'))
+		fanartNames.append (os.path.join(folderpath, 'background.jpg'))
+		if isDVD: fanartNames.append (os.path.join(folderpathDVD, 'background.jpg'))
 
 		# check possible fanart file locations
 		fanartFilename = self.checkFilePaths (fanartNames, 'fanart')
@@ -264,12 +259,12 @@ class xbmcnfo(Agent.Movies):
 		nfoNames.append (movienamewithyear + '.nfo')
 		nfoNames.append (moviename + '.nfo')
 		# VIDEO_TS
-		nfoNames.append (folderpath + self.pc + 'video_ts.nfo')
+		nfoNames.append (os.path.join(folderpath, 'video_ts.nfo'))
 		# movie.nfo (e.g. FilmInfo!Organizer users)
-		nfoNames.append (folderpath + self.pc + 'movie.nfo')
+		nfoNames.append (os.path.join(folderpath, 'movie.nfo'))
 		# last resort - use first found .nfo
 		nfoFiles = [f for f in os.listdir(folderpath) if f.endswith('.nfo')]
-		if nfoFiles: nfoNames.append (folderpath + self.pc + nfoFiles[0])
+		if nfoFiles: nfoNames.append (os.path.join(folderpath, nfoFiles[0]))
 
 		# check possible .nfo file locations
 		nfoFile = self.checkFilePaths (nfoNames, '.nfo')
