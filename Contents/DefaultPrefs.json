@@ -33,6 +33,18 @@
     "id":"afterrating",
     "label":"text after rating (supports html specialchars!):",
     "type":"text",
-    "default":"/10 | ",
+    "default":" | ",
+  },
+  {
+    "id":"correctdate",
+    "label":"correct false date recognition",
+    "type":"bool",
+    "default":"false"
+  },
+  {
+    "id":"datestring",
+    "label":"format directive (see http://strftime.org/)",
+    "type":"text",
+    "default":"%Y-%m-%d",
   }
 ]

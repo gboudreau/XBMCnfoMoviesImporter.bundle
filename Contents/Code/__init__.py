@@ -12,7 +12,7 @@ import os, re, time, datetime, platform, traceback, re, htmlentitydefs
 
 class xbmcnfo(Agent.Movies):
 	name = 'XBMCnfoMoviesImporter'
-	version = '1.0-14-g3d4864d-100'
+	version = '1.0-16-g1f0eb88-102'
 	primary_provider = True
 	languages = [Locale.Language.NoLanguage]
 	accepts_from = ['com.plexapp.agents.localmedia','com.plexapp.agents.opensubtitles','com.plexapp.agents.podnapisi']
@@ -342,7 +342,11 @@ class xbmcnfo(Agent.Movies):
 							self.DLog("No dateadded tag found...")
 							pass
 					if release_string:
-						release_date = parse_date(release_string)
+						if not Prefs['correctdate']:
+							release_date = parse_date(release_string)
+						else:
+							self.DLog("Apply date correction: " + Prefs['datestring'])
+							release_date = datetime.datetime.fromtimestamp(time.mktime(time.strptime(release_string, Prefs['datestring']))).date()
 				except:
 					self.DLog("Exception parsing releasedate: " + traceback.format_exc())
 					pass
