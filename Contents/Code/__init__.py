@@ -454,9 +454,11 @@ class xbmcnfo(Agent.Movies):
 				for actor in nfoXML.xpath('actor'):
 					role = metadata.roles.new()
 					try: role.actor = actor.xpath("name")[0].text
-					except: pass
+					except:
+						role.actor = "unknown"
 					try: role.role = actor.xpath("role")[0].text
-					except: pass
+					except:
+						role.role = "unknown"
 					
 				# Remote posters and fanarts are disabled for now; having them seems to stop the local artworks from being used.
 				#(remote) posters
