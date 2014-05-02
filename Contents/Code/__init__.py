@@ -10,9 +10,19 @@
 #
 import os, re, time, datetime, platform, traceback, re, htmlentitydefs
 
+COUNTRY_CODES = {
+  'Australia': 'Australia,AU',
+  'Canada': 'Canada,CA',
+  'France': 'France,FR',
+  'Germany': 'Germany,DE',
+  'Netherlands': 'Netherlands,NL',
+  'United Kingdom': 'UK,GB',
+  'United States': 'USA,',
+}
+
 class xbmcnfo(Agent.Movies):
 	name = 'XBMCnfoMoviesImporter'
-	version = '1.0-16-g1f0eb88-102'
+	version = '1.1-0-gbc9616e-106'
 	primary_provider = True
 	languages = [Locale.Language.NoLanguage]
 	accepts_from = ['com.plexapp.agents.localmedia','com.plexapp.agents.opensubtitles','com.plexapp.agents.podnapisi']
@@ -299,19 +309,35 @@ class xbmcnfo(Agent.Movies):
 				try: metadata.original_title = nfoXML.xpath('originaltitle')[0].text.strip()
 				except: pass
 				# Content Rating
+				metadata.content_rating = ''
+				content_rating = []
 				try:
-					mpaa = nfoXML.xpath('./mpaa')[0].text.strip()
-					match = re.match(r'(?:Rated\s)?(?P<mpaa>[A-z0-9-+/.]+(?:\s[0-9]+[A-z]?)?)?', mpaa)
+					mpaatext = nfoXML.xpath('./mpaa')[0].text.strip()
+					match = re.match(r'(?:Rated\s)?(?P<mpaa>[A-z0-9-+/.]+(?:\s[0-9]+[A-z]?)?)?', mpaatext)
 					if match.group('mpaa'):
-						content_rating = match.group('mpaa')
+						mpaa_rating = match.group('mpaa')
 					else:
-						content_rating = 'NR'
-					metadata.content_rating = content_rating
-				except:
-					try:
-						content_rating = nfoXML.xpath('certification')[0].text.strip()
-						metadata.content_rating = content_rating
-					except: pass
+						mpaa_rating = 'NR'
+				except: pass
+				try:
+					[content_rating.append(cert.strip()) for cert in nfoXML.xpath('certification')[0].text.split(" / ")]
+				except: pass
+				if Prefs['country'] != '':
+					c = Prefs['country']
+					cc = COUNTRY_CODES[c].split(',')
+					self.DLog('Country code from settings: ' + Prefs['country'] + ':' + str(cc))
+					for cr in content_rating:
+						self.DLog(str(cr))
+						country = cr.split(':')
+						if cc[0] == country[0]:
+							if cc[1]:
+								metadata.content_rating = '%s/%s' % (cc[1].lower(), country[1].strip('+'))
+							else:
+								metadata.content_rating = country[1].strip('+')
+							break
+				if metadata.content_rating == '':
+					metadata.content_rating = mpaa_rating
+
 				# Studio
 				try: metadata.studio = nfoXML.xpath("studio")[0].text.strip()
 				except: pass
