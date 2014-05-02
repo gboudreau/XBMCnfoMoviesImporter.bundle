@@ -1,3 +1,4 @@
+
 [
   {
     "id":"debug",
@@ -46,5 +47,21 @@
     "label":"format directive (see http://strftime.org/)",
     "type":"text",
     "default":"%Y-%m-%d",
+  },
+  {
+    "id": "country",
+    "label": "Country (used for release date and content rating)",
+    "type": "enum",
+    "values": [
+      "",
+      "Australia",
+      "Canada",
+      "France",
+      "Germany",
+      "Netherlands",
+      "United Kingdom",
+      "United States",
+    ],
+    "default": ""
   }
 ]
