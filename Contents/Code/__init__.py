@@ -22,7 +22,7 @@ COUNTRY_CODES = {
 
 class xbmcnfo(Agent.Movies):
 	name = 'XBMCnfoMoviesImporter'
-	version = '1.1-0-gbc9616e-106'
+	version = '1.1-2-g6018de2-108'
 	primary_provider = True
 	languages = [Locale.Language.NoLanguage]
 	accepts_from = ['com.plexapp.agents.localmedia','com.plexapp.agents.opensubtitles','com.plexapp.agents.podnapisi']
@@ -310,33 +310,37 @@ class xbmcnfo(Agent.Movies):
 				except: pass
 				# Content Rating
 				metadata.content_rating = ''
-				content_rating = []
+				content_rating = {}
+				mpaa_rating = 'NR'
 				try:
 					mpaatext = nfoXML.xpath('./mpaa')[0].text.strip()
 					match = re.match(r'(?:Rated\s)?(?P<mpaa>[A-z0-9-+/.]+(?:\s[0-9]+[A-z]?)?)?', mpaatext)
 					if match.group('mpaa'):
 						mpaa_rating = match.group('mpaa')
-					else:
-						mpaa_rating = 'NR'
+						self.DLog('MPAA Rating: ' + mpaa_rating)
 				except: pass
 				try:
-					[content_rating.append(cert.strip()) for cert in nfoXML.xpath('certification')[0].text.split(" / ")]
+					for cert in nfoXML.xpath('certification')[0].text.split(" / "):
+						country = cert.strip()
+						country = country.split(':')
+						if not country[0] in content_rating:
+							if country[0] == "Australia":
+								if country[1] == "MA": country[1] = "MA15"
+								if country[1] == "R": country[1] = "R18"
+								if country[1] == "X": country[1] = "X18"
+							content_rating[country[0]]=country[1].strip('+')
+					self.DLog('Content Rating(s): ' + str(content_rating))
 				except: pass
 				if Prefs['country'] != '':
-					c = Prefs['country']
-					cc = COUNTRY_CODES[c].split(',')
+					cc = COUNTRY_CODES[Prefs['country']].split(',')
 					self.DLog('Country code from settings: ' + Prefs['country'] + ':' + str(cc))
-					for cr in content_rating:
-						self.DLog(str(cr))
-						country = cr.split(':')
-						if cc[0] == country[0]:
-							if cc[1]:
-								metadata.content_rating = '%s/%s' % (cc[1].lower(), country[1].strip('+'))
-							else:
-								metadata.content_rating = country[1].strip('+')
-							break
+					if cc[0] in content_rating:
+						metadata.content_rating = '%s/%s' % (cc[1].lower(), content_rating.get(cc[0]))
 				if metadata.content_rating == '':
-					metadata.content_rating = mpaa_rating
+					if 'USA' in content_rating:
+						metadata.content_rating = content_rating.get('USA')
+					else:
+						metadata.content_rating = mpaa_rating
 
 				# Studio
 				try: metadata.studio = nfoXML.xpath("studio")[0].text.strip()
@@ -372,7 +376,14 @@ class xbmcnfo(Agent.Movies):
 							release_date = parse_date(release_string)
 						else:
 							self.DLog("Apply date correction: " + Prefs['datestring'])
-							release_date = datetime.datetime.fromtimestamp(time.mktime(time.strptime(release_string, Prefs['datestring']))).date()
+							if '*' in Prefs['datestring']:
+								for char in ['/','-','.']:
+									try:
+										release_date = datetime.datetime.fromtimestamp(time.mktime(time.strptime(release_string, Prefs['datestring'].replace('*', char)))).date()
+										self.DLog("Match found: " + Prefs['datestring'].replace('*', char))
+									except: pass
+							else:
+								release_date = datetime.datetime.fromtimestamp(time.mktime(time.strptime(release_string, Prefs['datestring']))).date()
 				except:
 					self.DLog("Exception parsing releasedate: " + traceback.format_exc())
 					pass
