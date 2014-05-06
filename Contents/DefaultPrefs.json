@@ -44,13 +44,13 @@
   },
   {
     "id":"datestring",
-    "label":"format directive (see http://strftime.org/)",
+    "label":"format directive (see http://strftime.org/, * will match -,/ and .)",
     "type":"text",
-    "default":"%Y-%m-%d",
+    "default":"%Y*%m*%d",
   },
   {
     "id": "country",
-    "label": "Country (used for release date and content rating)",
+    "label": "Country (used for content rating)",
     "type": "enum",
     "values": [
       "",
