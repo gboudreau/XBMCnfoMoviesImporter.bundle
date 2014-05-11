@@ -22,7 +22,7 @@ COUNTRY_CODES = {
 
 class xbmcnfo(Agent.Movies):
 	name = 'XBMCnfoMoviesImporter'
-	version = '1.1-2-g6018de2-108'
+	version = '1.1-5-g4c26d66-111'
 	primary_provider = True
 	languages = [Locale.Language.NoLanguage]
 	accepts_from = ['com.plexapp.agents.localmedia','com.plexapp.agents.opensubtitles','com.plexapp.agents.podnapisi']
@@ -311,7 +311,7 @@ class xbmcnfo(Agent.Movies):
 				# Content Rating
 				metadata.content_rating = ''
 				content_rating = {}
-				mpaa_rating = 'NR'
+				mpaa_rating = ''
 				try:
 					mpaatext = nfoXML.xpath('./mpaa')[0].text.strip()
 					match = re.match(r'(?:Rated\s)?(?P<mpaa>[A-z0-9-+/.]+(?:\s[0-9]+[A-z]?)?)?', mpaatext)
@@ -336,11 +336,12 @@ class xbmcnfo(Agent.Movies):
 					self.DLog('Country code from settings: ' + Prefs['country'] + ':' + str(cc))
 					if cc[0] in content_rating:
 						metadata.content_rating = '%s/%s' % (cc[1].lower(), content_rating.get(cc[0]))
+				if metadata.content_rating == '' and mpaa_rating != '':
+					metadata.content_rating = mpaa_rating
+				if metadata.content_rating == '' and 'USA' in content_rating:
+					metadata.content_rating = content_rating.get('USA')
 				if metadata.content_rating == '':
-					if 'USA' in content_rating:
-						metadata.content_rating = content_rating.get('USA')
-					else:
-						metadata.content_rating = mpaa_rating
+					metadata.content_rating = 'NR'
 
 				# Studio
 				try: metadata.studio = nfoXML.xpath("studio")[0].text.strip()

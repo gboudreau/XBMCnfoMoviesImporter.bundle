@@ -14,13 +14,7 @@
   },
   {
     "id":"fround",
-    "label":"enable rounding of floating point ratings",
-    "type":"bool",
-    "default":"false"
-  },
-  {
-    "id":"preserverating",
-    "label":"put .nfo rating in front of summary",
+    "label":"enable rounding of floating point ratings<br />__________________________________________________________________________________________",
     "type":"bool",
     "default":"false"
   },
@@ -37,16 +31,22 @@
     "default":" | ",
   },
   {
-    "id":"correctdate",
-    "label":"correct false date recognition",
+    "id":"preserverating",
+    "label":"pad .nfo rating with texts above and place it in front of summary<br />__________________________________________________________________________________________",
     "type":"bool",
     "default":"false"
   },
   {
     "id":"datestring",
-    "label":"format directive (see http://strftime.org/, * will match -,/ and .)",
+    "label":"format directive (see http://strftime.org/,* will match -,/ and .) %Y*%m*%d will match 2009-12-17, 2009/12/17 and 2009.12.17 but not 2009-17-12. %Y-%d-%m will only match 2009-17-12. Keep the dates in the .nfo files uniform! If years, months and days are switched around between .nfos, recognition will fail.",
     "type":"text",
     "default":"%Y*%m*%d",
+  },
+  {
+    "id":"correctdate",
+    "label":"use above directive to correct false date recognition<br />__________________________________________________________________________________________",
+    "type":"bool",
+    "default":"false"
   },
   {
     "id": "country",
