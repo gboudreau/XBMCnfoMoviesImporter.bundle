@@ -22,7 +22,7 @@ COUNTRY_CODES = {
 
 class xbmcnfo(Agent.Movies):
 	name = 'XBMCnfoMoviesImporter'
-	version = '1.1-5-g4c26d66-111'
+	ver = '1.1-8-g9f4b954-114'
 	primary_provider = True
 	languages = [Locale.Language.NoLanguage]
 	accepts_from = ['com.plexapp.agents.localmedia','com.plexapp.agents.opensubtitles','com.plexapp.agents.podnapisi']
@@ -110,7 +110,7 @@ class xbmcnfo(Agent.Movies):
 		self.DLog("++++++++++++++++++++++++")
 		self.DLog("Entering search function")
 		self.DLog("++++++++++++++++++++++++")
-		Log ("" + self.name + " Version: " + self.version)
+		Log ("" + self.name + " Version: " + self.ver)
 
 		path1 = String.Unquote(media.filename)
 		folderpath = os.path.dirname(path1)
@@ -192,7 +192,7 @@ class xbmcnfo(Agent.Movies):
 		self.DLog("++++++++++++++++++++++++")
 		self.DLog("Entering update function")
 		self.DLog("++++++++++++++++++++++++")
-		Log ("" + self.name + " Version: " + self.version)
+		Log ("" + self.name + " Version: " + self.ver)
 
 		parse_date = lambda s: Datetime.ParseDate(s).date()
 		path1 = media.items[0].parts[0].file
@@ -507,6 +507,24 @@ class xbmcnfo(Agent.Movies):
 				#(local) fanart
 				if fanartData:
 					metadata.art[fanartFilename] = Proxy.Media(fanartData)
+
+				# Trailer Support 
+				# Eden / Frodo
+				for f in os.listdir(folderpath):
+					(fn, ext) = os.path.splitext(f)
+					try:
+						title = ""
+						if fn.endswith('-trailer'):
+								title = ' '.join(fn.split('-')[:-1])
+						if fn == "trailer" or f.startswith ('movie-trailer'):
+								title = metadata.title
+						if title != "":
+							metadata.extras.add(TrailerObject(title=title, file=os.path.join(folderpath, f)))
+							self.DLog("Found trailer file " + os.path.join(folderpath, f))
+							self.DLog("Trailer title:" + title)
+					except:
+						self.DLog("Exception adding trailer file!")
+
 				
 				Log("---------------------")
 				Log("Movie nfo Information")
