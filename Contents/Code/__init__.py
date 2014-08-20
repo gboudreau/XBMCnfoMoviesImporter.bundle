@@ -22,7 +22,7 @@ COUNTRY_CODES = {
 
 class xbmcnfo(Agent.Movies):
 	name = 'XBMCnfoMoviesImporter'
-	ver = '1.1-8-g9f4b954-114'
+	ver = '1.1-10-gdf17e9b-116'
 	primary_provider = True
 	languages = [Locale.Language.NoLanguage]
 	accepts_from = ['com.plexapp.agents.localmedia','com.plexapp.agents.opensubtitles','com.plexapp.agents.podnapisi']
@@ -510,20 +510,21 @@ class xbmcnfo(Agent.Movies):
 
 				# Trailer Support 
 				# Eden / Frodo
-				for f in os.listdir(folderpath):
-					(fn, ext) = os.path.splitext(f)
-					try:
-						title = ""
-						if fn.endswith('-trailer'):
-								title = ' '.join(fn.split('-')[:-1])
-						if fn == "trailer" or f.startswith ('movie-trailer'):
-								title = metadata.title
-						if title != "":
-							metadata.extras.add(TrailerObject(title=title, file=os.path.join(folderpath, f)))
-							self.DLog("Found trailer file " + os.path.join(folderpath, f))
-							self.DLog("Trailer title:" + title)
-					except:
-						self.DLog("Exception adding trailer file!")
+				if Prefs['trailer']:
+					for f in os.listdir(folderpath):
+						(fn, ext) = os.path.splitext(f)
+						try:
+							title = ""
+							if fn.endswith('-trailer'):
+									title = ' '.join(fn.split('-')[:-1])
+							if fn == "trailer" or f.startswith ('movie-trailer'):
+									title = metadata.title
+							if title != "":
+								metadata.extras.add(TrailerObject(title=title, file=os.path.join(folderpath, f)))
+								self.DLog("Found trailer file " + os.path.join(folderpath, f))
+								self.DLog("Trailer title:" + title)
+						except:
+							self.DLog("Exception adding trailer file!")
 
 				
 				Log("---------------------")
