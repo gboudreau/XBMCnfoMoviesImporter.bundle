@@ -40,18 +40,18 @@ class xbmcnfo(Agent.Movies):
 		return (videoFileBase + fileExtension)
 
 	def getMovieNameFromFolder(self, folderpath, withYear):
-		foldersplit = folderpath.split (os.pathsep)
+		foldersplit = folderpath.split (os.sep)
 		if withYear == True:
 			if foldersplit[-1] == 'VIDEO_TS':
-				moviename = os.pathsep.join(foldersplit[1:len(foldersplit)-1:]) + os.pathsep + foldersplit[-2]
+				moviename = os.sep.join(foldersplit[1:len(foldersplit)-1:]) + os.sep + foldersplit[-2]
 			else:
-				moviename = os.pathsep.join(foldersplit) + os.pathsep + foldersplit[-1]
+				moviename = os.sep.join(foldersplit) + os.sep + foldersplit[-1]
 			self.DLog("Moviename from folder (withYear): " + moviename)
 		else:
 			if foldersplit[-1] == 'VIDEO_TS':
-				moviename = os.pathsep.join(foldersplit[1:len(foldersplit)-1:]) + os.pathsep + re.sub (r' \(.*\)',r'',foldersplit[-2])
+				moviename = os.sep.join(foldersplit[1:len(foldersplit)-1:]) + os.sep + re.sub (r' \(.*\)',r'',foldersplit[-2])
 			else:
-				moviename = os.pathsep.join(foldersplit) + os.pathsep + re.sub (r' \(.*\)',r'',foldersplit[-1])
+				moviename = os.sep.join(foldersplit) + os.sep + re.sub (r' \(.*\)',r'',foldersplit[-1])
 			self.DLog("Moviename from folder: " + moviename)
 		return moviename
 
