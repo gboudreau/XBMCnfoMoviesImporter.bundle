@@ -20,7 +20,7 @@
   },
   {
     "id":"fround",
-    "label":"enable rounding of floating point ratings<br />__________________________________________________________________________________________",
+    "label":"enable rounding of floating point ratings\n__________________________________________________________________________________________",
     "type":"bool",
     "default":"false"
   },
@@ -38,7 +38,7 @@
   },
   {
     "id":"preserverating",
-    "label":"pad .nfo rating with texts above and place it in front of summary<br />__________________________________________________________________________________________",
+    "label":"pad .nfo rating with texts above and place it in front of summary\n__________________________________________________________________________________________",
     "type":"bool",
     "default":"false"
   },
@@ -50,7 +50,7 @@
   },
   {
     "id":"correctdate",
-    "label":"use above directive to correct false date recognition<br />__________________________________________________________________________________________",
+    "label":"use above directive to correct false date recognition\n__________________________________________________________________________________________",
     "type":"bool",
     "default":"false"
   },
