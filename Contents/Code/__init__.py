@@ -22,7 +22,7 @@ COUNTRY_CODES = {
 
 class xbmcnfo(Agent.Movies):
 	name = 'XBMCnfoMoviesImporter'
-	ver = '1.1-14-g368402c-120'
+	ver = '1.1-16-g3430861-122'
 	primary_provider = True
 	languages = [Locale.Language.NoLanguage]
 	accepts_from = ['com.plexapp.agents.localmedia','com.plexapp.agents.opensubtitles','com.plexapp.agents.podnapisi']
@@ -335,7 +335,10 @@ class xbmcnfo(Agent.Movies):
 					cc = COUNTRY_CODES[Prefs['country']].split(',')
 					self.DLog('Country code from settings: ' + Prefs['country'] + ':' + str(cc))
 					if cc[0] in content_rating:
-						metadata.content_rating = '%s/%s' % (cc[1].lower(), content_rating.get(cc[0]))
+						if cc[1] == "":
+							metadata.content_rating = content_rating.get(cc[0])
+						else:
+							metadata.content_rating = '%s/%s' % (cc[1].lower(), content_rating.get(cc[0]))
 				if metadata.content_rating == '' and mpaa_rating != '':
 					metadata.content_rating = mpaa_rating
 				if metadata.content_rating == '' and 'USA' in content_rating:
