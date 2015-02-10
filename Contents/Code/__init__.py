@@ -20,9 +20,13 @@ COUNTRY_CODES = {
   'United States': 'USA,',
 }
 
+PERCENT_RATINGS = {
+  'rottentomatoes','rotten tomatoes','rt'
+}
+
 class xbmcnfo(Agent.Movies):
 	name = 'XBMCnfoMoviesImporter'
-	ver = '1.1-16-g3430861-122'
+	ver = '1.1-18-g65d6f3b-124'
 	primary_provider = True
 	languages = [Locale.Language.NoLanguage]
 	accepts_from = ['com.plexapp.agents.localmedia','com.plexapp.agents.opensubtitles','com.plexapp.agents.podnapisi']
@@ -115,7 +119,6 @@ class xbmcnfo(Agent.Movies):
 		path1 = String.Unquote(media.filename)
 		folderpath = os.path.dirname(path1)
 		self.DLog('folderpath: ' + folderpath)
-		
 
 		# Moviename with year from folder
 		movienamewithyear = self.getMovieNameFromFolder (folderpath, True)
@@ -175,7 +178,7 @@ class xbmcnfo(Agent.Movies):
 				else:
 					# if movie id doesn't exist, create
 					# one based on hash of title and year
-					ord3 = lambda x : '%.3d' % ord(x) 
+					ord3 = lambda x : '%.3d' % ord(x)
 					id = int(''.join(map(ord3, media.name+str(media.year))))
 					id = str(abs(hash(int(id))))
 					media.id = id
@@ -294,7 +297,7 @@ class xbmcnfo(Agent.Movies):
 					return
 
 				#remove empty xml tags
-				self.DLog('Removing empty XML tags from tvshows nfo...')
+				self.DLog('Removing empty XML tags from movies nfo...')
 				nfoXML = self.RemoveEmptyTags(nfoXML)
 
 				# Title
@@ -425,29 +428,56 @@ class xbmcnfo(Agent.Movies):
 				except:
 					self.DLog("Exception on reading summary!")
 					pass
-				# Rating
+				# Ratings
 				try:
 					nforating = float(nfoXML.xpath("rating")[0].text.replace(',', '.'))
 					if Prefs['fround']:
 						rating = self.FloatRound(nforating)
 					else:
 						rating = nforating
+					if Prefs['altratings']:
+						self.DLog("Searching for additional Ratings...")
+						allowedratings = Prefs['ratings']
+						if not allowedratings: allowedratings = ""
+						addratingsstring = ""
+						addratings = nfoXML.xpath('ratings')
+						if addratings:
+							for addratingXML in addratings:
+								for addrating in addratingXML:
+									ratingprovider = str(addrating.attrib['moviedb'])
+									ratingvalue = str(addrating.text.replace (',','.'))
+									if ratingprovider.lower() in PERCENT_RATINGS:
+										ratingvalue = ratingvalue + "%"
+									if ratingprovider in allowedratings or allowedratings == "":
+										self.DLog("adding rating: " + ratingprovider + ": " + ratingvalue)
+										addratingsstring = addratingsstring + " | " + ratingprovider + ": " + ratingvalue
+							self.DLog("Putting additional ratings at the " + Prefs['ratingspos'] + " of the summary!")
+							if Prefs['ratingspos'] == "front":
+								if Prefs['preserverating']:
+									metadata.summary = addratingsstring[3:] + self.unescape(" &#9733;\n\n") + metadata.summary
+								else:
+									metadata.summary = self.unescape("&#9733; ") + addratingsstring[3:] + self.unescape(" &#9733;\n\n") + metadata.summary
+							else:
+								metadata.summary = metadata.summary + self.unescape("\n\n&#9733; ") + addratingsstring[3:] + self.unescape(" &#9733;")
 					if Prefs['preserverating']:
 						self.DLog("Putting .nfo rating in front of summary!")
 						metadata.summary = self.unescape(str(Prefs['beforerating'])) + "{:.1f}".format(nforating) + self.unescape(str(Prefs['afterrating'])) + metadata.summary
 						metadata.rating = rating
 					else:
 						metadata.rating = rating
-				except: pass
+				except:
+					self.DLog("Exception parsing ratings: " + traceback.format_exc())
+					pass
+
 				# Writers (Credits)
-				try: 
+				try:
 					credits = nfoXML.xpath('credits')
 					metadata.writers.clear()
 					[metadata.writers.add(c.strip()) for creditXML in credits for c in creditXML.text.split("/")]
 					metadata.writers.discard('')
 				except: pass
 				# Directors
-				try: 
+				try:
 					directors = nfoXML.xpath('director')
 					metadata.directors.clear()
 					[metadata.directors.add(d.strip()) for directorXML in directors for d in directorXML.text.split("/")]
@@ -500,7 +530,7 @@ class xbmcnfo(Agent.Movies):
 					try: role.role = actor.xpath("role")[0].text
 					except:
 						role.role = "unknown"
-					
+
 				# Remote posters and fanarts are disabled for now; having them seems to stop the local artworks from being used.
 				#(remote) posters
 				#(local) poster
@@ -511,7 +541,7 @@ class xbmcnfo(Agent.Movies):
 				if fanartData:
 					metadata.art[fanartFilename] = Proxy.Media(fanartData)
 
-				# Trailer Support 
+				# Trailer Support
 				# Eden / Frodo
 				if Prefs['trailer']:
 					for f in os.listdir(folderpath):
@@ -529,7 +559,7 @@ class xbmcnfo(Agent.Movies):
 						except:
 							self.DLog("Exception adding trailer file!")
 
-				
+
 				Log("---------------------")
 				Log("Movie nfo Information")
 				Log("---------------------")

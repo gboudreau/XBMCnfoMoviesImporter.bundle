@@ -43,6 +43,28 @@
     "default":"false"
   },
   {
+    "id":"ratings",
+    "label":"Comma separated list of alternate rating identifiers (eg: imdb,rt). If empty all alternate ratings will be included.",
+    "type":"text",
+    "default":"",
+  },
+  {
+    "id":"ratingspos",
+    "label":"position for additional ratings in summary",
+    "type": "enum",
+    "values": [
+      "front",
+      "back",
+    ],
+    "default": "back"
+  },
+  {
+    "id":"altratings",
+    "label":"enable additional ratings support\n__________________________________________________________________________________________",
+    "type":"bool",
+    "default":"false"
+  },
+  {
     "id":"datestring",
     "label":"format directive (see http://strftime.org/,* will match -,/ and .) %Y*%m*%d will match 2009-12-17, 2009/12/17 and 2009.12.17 but not 2009-17-12. %Y-%d-%m will only match 2009-17-12. Keep the dates in the .nfo files uniform! If year, month and day are switched around between .nfos, recognition will fail.",
     "type":"text",
