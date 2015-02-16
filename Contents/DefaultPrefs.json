@@ -44,7 +44,7 @@
   },
   {
     "id":"ratings",
-    "label":"Comma separated list of alternate rating identifiers (eg: imdb,rt). If empty all alternate ratings will be included.",
+    "label":"Restrict additional ratings to identifiers separated by comma (eg: IMDb, RT). If left empty all ratings found will be included.",
     "type":"text",
     "default":"",
   },

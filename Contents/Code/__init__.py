@@ -21,12 +21,12 @@ COUNTRY_CODES = {
 }
 
 PERCENT_RATINGS = {
-  'rottentomatoes','rotten tomatoes','rt'
+  'rottentomatoes','rotten tomatoes','rt','flixster'
 }
 
 class xbmcnfo(Agent.Movies):
 	name = 'XBMCnfoMoviesImporter'
-	ver = '1.1-18-g65d6f3b-124'
+	ver = '1.1-19-ga7b3ec5-125'
 	primary_provider = True
 	languages = [Locale.Language.NoLanguage]
 	accepts_from = ['com.plexapp.agents.localmedia','com.plexapp.agents.opensubtitles','com.plexapp.agents.podnapisi']
