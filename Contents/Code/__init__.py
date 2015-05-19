@@ -26,7 +26,7 @@ PERCENT_RATINGS = {
 
 class xbmcnfo(Agent.Movies):
 	name = 'XBMCnfoMoviesImporter'
-	ver = '1.1-19-ga7b3ec5-125'
+	ver = '1.1-22-g088db3b-128'
 	primary_provider = True
 	languages = [Locale.Language.NoLanguage]
 	accepts_from = ['com.plexapp.agents.localmedia','com.plexapp.agents.opensubtitles','com.plexapp.agents.podnapisi']
