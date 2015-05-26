@@ -26,7 +26,7 @@ PERCENT_RATINGS = {
 
 class xbmcnfo(Agent.Movies):
 	name = 'XBMCnfoMoviesImporter'
-	ver = '1.1-23-gcab3271-129'
+	ver = '1.1-24-gd14af44-130'
 	primary_provider = True
 	languages = [Locale.Language.NoLanguage]
 	accepts_from = ['com.plexapp.agents.localmedia','com.plexapp.agents.opensubtitles','com.plexapp.agents.podnapisi']
@@ -146,8 +146,11 @@ class xbmcnfo(Agent.Movies):
 			# work around failing XML parses for things with &'s in
 			# them. This may need to go farther than just &'s....
 			nfoText = re.sub(r'&(?![A-Za-z]+[0-9]*;|#[0-9]+;|#x[0-9a-fA-F]+;)', r'&amp;', nfoText)
-			nfoTextLower = nfoText.lower()
+			# remove empty xml tags from nfo
+			self.DLog('Removing empty XML tags from movies nfo...')
+			nfoText = re.sub(r'^\s*<.*/>[\r\n]+', '', nfoText, flags = re.MULTILINE)
 
+			nfoTextLower = nfoText.lower()
 			if nfoTextLower.count('<movie') > 0 and nfoTextLower.count('</movie>') > 0:
 				# Remove URLs (or other stuff) at the end of the XML file
 				nfoText = '%s</movie>' % nfoText.rsplit('</movie>', 1)[0]
@@ -284,7 +287,13 @@ class xbmcnfo(Agent.Movies):
 
 		if nfoFile:
 			nfoText = Core.storage.load(nfoFile)
+			# work around failing XML parses for things with &'s in
+			# them. This may need to go farther than just &'s....
 			nfoText = re.sub(r'&(?![A-Za-z]+[0-9]*;|#[0-9]+;|#x[0-9a-fA-F]+;)', r'&amp;', nfoText)
+			# remove empty xml tags from nfo
+			self.DLog('Removing empty XML tags from movies nfo...')
+			nfoText = re.sub(r'^\s*<.*/>[\r\n]+', '', nfoText, flags = re.MULTILINE)
+
 			nfoTextLower = nfoText.lower()
 			if nfoTextLower.count('<movie') > 0 and nfoTextLower.count('</movie>') > 0:
 				# Remove URLs (or other stuff) at the end of the XML file
