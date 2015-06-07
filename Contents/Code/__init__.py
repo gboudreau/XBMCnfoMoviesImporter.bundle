@@ -26,10 +26,11 @@ PERCENT_RATINGS = {
 
 class xbmcnfo(Agent.Movies):
 	name = 'XBMCnfoMoviesImporter'
-	ver = '1.1-24-gd14af44-130'
+	ver = '1.1-25-g2ffa17f-131'
 	primary_provider = True
 	languages = [Locale.Language.NoLanguage]
-	accepts_from = ['com.plexapp.agents.localmedia','com.plexapp.agents.opensubtitles','com.plexapp.agents.podnapisi']
+	accepts_from = ['com.plexapp.agents.none','com.plexapp.agents.imdb','com.plexapp.agents.localmedia','com.plexapp.agents.opensubtitles','com.plexapp.agents.podnapisi']
+	contributes_to = ['com.plexapp.agents.none','com.plexapp.agents.imdb']
 
 ##### helper functions #####
 	def DLog (self, LogMessage):
@@ -165,6 +166,11 @@ class xbmcnfo(Agent.Movies):
 				try: media.name = nfoXML.xpath('title')[0].text
 				except:
 					self.DLog("ERROR: No <title> tag in " + nfoFile + ". Aborting!")
+					return
+				# Sorttitle
+				try: media.sorttitle = nfoXML.xpath('sorttitle')[0].text
+				except:
+					self.DLog("ERROR: No <sorttitle> tag in " + nfoFile + ". Aborting!")
 					return
 				# Year
 				try: media.year = nfoXML.xpath('year')[0].text
@@ -313,6 +319,11 @@ class xbmcnfo(Agent.Movies):
 				try: metadata.title = nfoXML.xpath('title')[0].text.strip()
 				except:
 					self.DLog("ERROR: No <title> tag in " + nfoFile + ". Aborting!")
+					return
+				# Sorttitle
+				try: metadata.sorttitle = nfoXML.xpath('sorttitle')[0].text.strip()
+				except:
+					self.DLog("ERROR: No <sorttitle> tag in " + nfoFile + ". Aborting!")
 					return
 				# Year
 				try: metadata.year = int(nfoXML.xpath("year")[0].text.strip())
