@@ -355,8 +355,10 @@ class xbmcnfo(Agent.Movies):
 					metadata.content_rating = mpaa_rating
 				if metadata.content_rating == '' and 'USA' in content_rating:
 					metadata.content_rating = content_rating.get('USA')
-				if metadata.content_rating == '':
+				if metadata.content_rating == '' or metadata.content_rating == 'Not Rated':
 					metadata.content_rating = 'NR'
+				if '(' in metadata.content_rating:
+					metadata.content_rating = re.sub(r'\s*\(.*?\)', '', metadata.content_rating)
 
 				# Studio
 				try: metadata.studio = nfoXML.xpath("studio")[0].text.strip()
