@@ -1,0 +1,95 @@
+
+[
+  {
+    "id":"debug",
+    "label":"enable debug logging",
+    "type":"bool",
+    "default":"false"
+  },
+  {
+    "id":"plot",
+    "label":"use plot instead of outline",
+    "type":"bool",
+    "default":"false"
+  },
+  {
+    "id":"trailer",
+    "label":"enable trailer support",
+    "type":"bool",
+    "default":"false"
+  },
+  {
+    "id":"fround",
+    "label":"enable rounding of floating point ratings\n__________________________________________________________________________________________",
+    "type":"bool",
+    "default":"false"
+  },
+  {
+    "id":"beforerating",
+    "label":"text before rating (supports html specialchars!):",
+    "type":"text",
+    "default":"&#9733; ",
+  },
+  {
+    "id":"afterrating",
+    "label":"text after rating (supports html specialchars!):",
+    "type":"text",
+    "default":" | ",
+  },
+  {
+    "id":"preserverating",
+    "label":"pad .nfo rating with texts above and place it in front of summary\n__________________________________________________________________________________________",
+    "type":"bool",
+    "default":"false"
+  },
+  {
+    "id":"ratings",
+    "label":"Restrict additional ratings to identifiers separated by comma (eg: IMDb, RT). If left empty all ratings found will be included.",
+    "type":"text",
+    "default":"",
+  },
+  {
+    "id":"ratingspos",
+    "label":"position for additional ratings in summary",
+    "type": "enum",
+    "values": [
+      "front",
+      "back",
+    ],
+    "default": "back"
+  },
+  {
+    "id":"altratings",
+    "label":"enable additional ratings support\n__________________________________________________________________________________________",
+    "type":"bool",
+    "default":"false"
+  },
+  {
+    "id":"datestring",
+    "label":"format directive (see http://strftime.org/,* will match -,/ and .) %Y*%m*%d will match 2009-12-17, 2009/12/17 and 2009.12.17 but not 2009-17-12. %Y-%d-%m will only match 2009-17-12. Keep the dates in the .nfo files uniform! If year, month and day are switched around between .nfos, recognition will fail.",
+    "type":"text",
+    "default":"%Y*%m*%d",
+  },
+  {
+    "id":"correctdate",
+    "label":"use above directive to correct false date recognition\n__________________________________________________________________________________________",
+    "type":"bool",
+    "default":"false"
+  },
+  {
+    "id": "country",
+    "label": "Country (used for content rating)",
+    "type": "enum",
+    "values": [
+      "",
+      "Australia",
+      "Canada",
+      "France",
+      "Germany",
+      "Netherlands",
+      "United Kingdom",
+      "United States",
+    ],
+    "default": ""
+  }
+]
