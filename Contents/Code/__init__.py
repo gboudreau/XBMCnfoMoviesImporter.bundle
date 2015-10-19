@@ -29,7 +29,7 @@ class xbmcnfo(Agent.Movies):
 	ver = '1.1-24-gd14af44-130'
 	primary_provider = True
 	languages = [Locale.Language.NoLanguage]
-	accepts_from = ['com.plexapp.agents.localmedia','com.plexapp.agents.opensubtitles','com.plexapp.agents.podnapisi']
+	accepts_from = ['com.plexapp.agents.localmedia','com.plexapp.agents.opensubtitles','com.plexapp.agents.podnapisi','com.plexapp.agents.subzero']
 
 ##### helper functions #####
 	def DLog (self, LogMessage):
