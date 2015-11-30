@@ -26,7 +26,7 @@ PERCENT_RATINGS = {
 
 class xbmcnfo(Agent.Movies):
 	name = 'XBMCnfoMoviesImporter'
-	ver = '1.1-24-gd14af44-130'
+	ver = '1.1-33-g568343d-139'
 	primary_provider = True
 	languages = [Locale.Language.NoLanguage]
 	accepts_from = ['com.plexapp.agents.localmedia','com.plexapp.agents.opensubtitles','com.plexapp.agents.podnapisi','com.plexapp.agents.subzero']
@@ -438,10 +438,11 @@ class xbmcnfo(Agent.Movies):
 					metadata.summary = summary
 				except:
 					self.DLog("Exception on reading summary!")
+					metadata.summary = ""
 					pass
 				# Ratings
 				try:
-					nforating = float(nfoXML.xpath("rating")[0].text.replace(',', '.'))
+					nforating = round(float(nfoXML.xpath("rating")[0].text.replace(',', '.')),1)
 					if Prefs['fround']:
 						rating = self.FloatRound(nforating)
 					else:
