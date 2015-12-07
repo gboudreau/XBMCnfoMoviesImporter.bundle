@@ -14,13 +14,7 @@
   },
   {
     "id":"trailer",
-    "label":"enable trailer support",
-    "type":"bool",
-    "default":"false"
-  },
-  {
-    "id":"fround",
-    "label":"enable rounding of floating point ratings\n__________________________________________________________________________________________",
+    "label":"enable trailer support\n__________________________________________________________________________________________",
     "type":"bool",
     "default":"false"
   },

@@ -26,7 +26,7 @@ PERCENT_RATINGS = {
 
 class xbmcnfo(Agent.Movies):
 	name = 'XBMCnfoMoviesImporter'
-	ver = '1.1-34-g5c2d4fc-140'
+	ver = '1.1-35-g8d40d16-141'
 	primary_provider = True
 	languages = [Locale.Language.NoLanguage]
 	accepts_from = ['com.plexapp.agents.localmedia','com.plexapp.agents.opensubtitles','com.plexapp.agents.podnapisi','com.plexapp.agents.subzero']
@@ -78,9 +78,6 @@ class xbmcnfo(Agent.Movies):
 				#self.DLog("Removing empty XMLTag: " + xmltag.tag)
 				xmltag.getparent().remove(xmltag)
 		return xmltags
-
-	def FloatRound(self, x):
-		return x + 0.5 / 2 - ((x + 0.5 / 2) % 0.5)
 
 	##
 	# Removes HTML or XML character references and entities from a text string.
@@ -453,26 +450,33 @@ class xbmcnfo(Agent.Movies):
 				# Ratings
 				try:
 					nforating = round(float(nfoXML.xpath("rating")[0].text.replace(',', '.')),1)
-					if Prefs['fround']:
-						rating = self.FloatRound(nforating)
-					else:
-						rating = nforating
-					if Prefs['altratings']:
-						self.DLog("Searching for additional Ratings...")
-						allowedratings = Prefs['ratings']
-						if not allowedratings: allowedratings = ""
-						addratingsstring = ""
+					metadata.rating = nforating
+					self.DLog("Series Rating found: " + str(nforating))
+				except:
+					self.DLog("Can't read rating from tvshow.nfo.")
+					nforating = 0.0
+					pass
+				if Prefs['altratings']:
+					self.DLog("Searching for additional Ratings...")
+					allowedratings = Prefs['ratings']
+					if not allowedratings: allowedratings = ""
+					addratingsstring = ""
+					try:
 						addratings = nfoXML.xpath('ratings')
-						if addratings:
-							for addratingXML in addratings:
-								for addrating in addratingXML:
-									ratingprovider = str(addrating.attrib['moviedb'])
-									ratingvalue = str(addrating.text.replace (',','.'))
-									if ratingprovider.lower() in PERCENT_RATINGS:
-										ratingvalue = ratingvalue + "%"
-									if ratingprovider in allowedratings or allowedratings == "":
-										self.DLog("adding rating: " + ratingprovider + ": " + ratingvalue)
-										addratingsstring = addratingsstring + " | " + ratingprovider + ": " + ratingvalue
+						self.DLog("Trying to read additional ratings from .nfo.")
+					except:
+						self.DLog("Can't read additional ratings from .nfo.")
+						pass
+					if addratings:
+						for addratingXML in addratings:
+							for addrating in addratingXML:
+								ratingprovider = str(addrating.attrib['moviedb'])
+								ratingvalue = str(addrating.text.replace (',','.'))
+								if ratingprovider.lower() in PERCENT_RATINGS:
+									ratingvalue = ratingvalue + "%"
+								if ratingprovider in allowedratings or allowedratings == "":
+									self.DLog("adding rating: " + ratingprovider + ": " + ratingvalue)
+									addratingsstring = addratingsstring + " | " + ratingprovider + ": " + ratingvalue
 							self.DLog("Putting additional ratings at the " + Prefs['ratingspos'] + " of the summary!")
 							if Prefs['ratingspos'] == "front":
 								if Prefs['preserverating']:
@@ -484,13 +488,9 @@ class xbmcnfo(Agent.Movies):
 					if Prefs['preserverating']:
 						self.DLog("Putting .nfo rating in front of summary!")
 						metadata.summary = self.unescape(str(Prefs['beforerating'])) + "{:.1f}".format(nforating) + self.unescape(str(Prefs['afterrating'])) + metadata.summary
-						metadata.rating = rating
+						metadata.rating = nforating
 					else:
-						metadata.rating = rating
-				except:
-					self.DLog("Exception parsing ratings: " + traceback.format_exc())
-					pass
-
+						metadata.rating = nforating
 				# Writers (Credits)
 				try:
 					credits = nfoXML.xpath('credits')
