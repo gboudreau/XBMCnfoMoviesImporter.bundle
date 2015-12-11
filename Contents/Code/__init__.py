@@ -9,6 +9,7 @@
 # Logo by CrazyRabbit
 #
 import os, re, time, datetime, platform, traceback, re, htmlentitydefs
+from dateutil.parser import parse
 
 COUNTRY_CODES = {
   'Australia': 'Australia,AU',
@@ -26,7 +27,7 @@ PERCENT_RATINGS = {
 
 class xbmcnfo(Agent.Movies):
 	name = 'XBMCnfoMoviesImporter'
-	ver = '1.1-35-g8d40d16-141'
+	ver = '1.1-36-g49b4e57-142'
 	primary_provider = True
 	languages = [Locale.Language.NoLanguage]
 	accepts_from = ['com.plexapp.agents.localmedia','com.plexapp.agents.opensubtitles','com.plexapp.agents.podnapisi','com.plexapp.agents.subzero']
@@ -169,7 +170,9 @@ class xbmcnfo(Agent.Movies):
 					self.DLog("No <sorttitle> tag in " + nfoFile + ".")
 					pass
 				# Year
-				try: media.year = nfoXML.xpath('year')[0].text
+				try:
+					media.year = int(nfoXML.xpath('year')[0].text.strip())
+					self.DLog ("Reading year tag: " + str(media.year))
 				except: pass
 				# ID
 				try:
@@ -202,7 +205,6 @@ class xbmcnfo(Agent.Movies):
 		self.DLog("++++++++++++++++++++++++")
 		Log ("" + self.name + " Version: " + self.ver)
 
-		parse_date = lambda s: Datetime.ParseDate(s).date()
 		path1 = media.items[0].parts[0].file
 		self.DLog('media file: ' + path1)
 		folderpath = os.path.dirname(path1)
@@ -322,7 +324,9 @@ class xbmcnfo(Agent.Movies):
 					self.DLog("No <sorttitle> tag in " + nfoFile + ".")
 					pass
 				# Year
-				try: metadata.year = int(nfoXML.xpath("year")[0].text.strip())
+				try:
+					metadata.year = int(nfoXML.xpath('year')[0].text.strip())
+					self.DLog ("Set year tag: " + str(metadata.year))
 				except: pass
 				# Original Title
 				try: metadata.original_title = nfoXML.xpath('originaltitle')[0].text.strip()
@@ -397,18 +401,16 @@ class xbmcnfo(Agent.Movies):
 							self.DLog("No dateadded tag found...")
 							pass
 					if release_string:
-						if not Prefs['correctdate']:
-							release_date = parse_date(release_string)
-						else:
-							self.DLog("Apply date correction: " + Prefs['datestring'])
-							if '*' in Prefs['datestring']:
-								for char in ['/','-','.']:
-									try:
-										release_date = datetime.datetime.fromtimestamp(time.mktime(time.strptime(release_string, Prefs['datestring'].replace('*', char)))).date()
-										self.DLog("Match found: " + Prefs['datestring'].replace('*', char))
-									except: pass
-							else:
-								release_date = datetime.datetime.fromtimestamp(time.mktime(time.strptime(release_string, Prefs['datestring']))).date()
+						try:
+							dt = parse(release_string)
+							release_date = dt
+							self.DLog("Set premiere to: " + dt.strftime('%Y-%m-%d'))
+							if not metadata.year:
+								metadata.year = int(dt.strftime('%Y'))
+								self.DLog ("Set year tag from premiere: " + str(metadata.year))
+						except:
+							self.DLog("Couldn't parse premiere: " + air_string)
+							pass
 				except:
 					self.DLog("Exception parsing releasedate: " + traceback.format_exc())
 					pass
