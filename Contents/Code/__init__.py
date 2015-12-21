@@ -27,7 +27,7 @@ PERCENT_RATINGS = {
 
 class xbmcnfo(Agent.Movies):
 	name = 'XBMCnfoMoviesImporter'
-	ver = '1.1-37-g19de830-143'
+	ver = '1.1-38-g2d77b79-144'
 	primary_provider = True
 	languages = [Locale.Language.NoLanguage]
 	accepts_from = ['com.plexapp.agents.localmedia','com.plexapp.agents.opensubtitles','com.plexapp.agents.podnapisi','com.plexapp.agents.subzero']
@@ -351,7 +351,9 @@ class xbmcnfo(Agent.Movies):
 								if country[1] == "MA": country[1] = "MA15"
 								if country[1] == "R": country[1] = "R18"
 								if country[1] == "X": country[1] = "X18"
-							content_rating[country[0]]=country[1].strip('+')
+							if country[0] == "DE":
+								country[0] = "Germany"
+							content_rating[country[0]]=country[1].strip('+').replace('FSK','').replace('ab ','').strip()
 					self.DLog('Content Rating(s): ' + str(content_rating))
 				except: pass
 				if Prefs['country'] != '':
