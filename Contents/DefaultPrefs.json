@@ -7,6 +7,12 @@
     "default":"false"
   },
   {
+    "id":"dayfirst",
+    "label":"enable day first in ambiguous dates",
+    "type":"bool",
+    "default":"false"
+  },
+  {
     "id":"plot",
     "label":"use plot instead of outline",
     "type":"bool",

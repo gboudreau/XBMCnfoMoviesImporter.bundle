@@ -27,7 +27,7 @@ PERCENT_RATINGS = {
 
 class xbmcnfo(Agent.Movies):
 	name = 'XBMCnfoMoviesImporter'
-	ver = '1.1-38-g2d77b79-144'
+	ver = '1.1-39-g32cd541-145'
 	primary_provider = True
 	languages = [Locale.Language.NoLanguage]
 	accepts_from = ['com.plexapp.agents.localmedia','com.plexapp.agents.opensubtitles','com.plexapp.agents.podnapisi','com.plexapp.agents.subzero']
@@ -404,7 +404,10 @@ class xbmcnfo(Agent.Movies):
 							pass
 					if release_string:
 						try:
-							dt = parse(release_string)
+							if Prefs['dayfirst']:
+								dt = parse(release_string, dayfirst=True)
+							else:
+								dt = parse(release_string)
 							release_date = dt
 							self.DLog("Set premiere to: " + dt.strftime('%Y-%m-%d'))
 							if not metadata.year:
