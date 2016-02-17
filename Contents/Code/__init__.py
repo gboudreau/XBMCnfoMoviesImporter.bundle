@@ -27,7 +27,7 @@ PERCENT_RATINGS = {
 
 class xbmcnfo(Agent.Movies):
 	name = 'XBMCnfoMoviesImporter'
-	ver = '1.1-39-g32cd541-145'
+	ver = '1.1-40-g48a280b-146'
 	primary_provider = True
 	languages = [Locale.Language.NoLanguage]
 	accepts_from = ['com.plexapp.agents.localmedia','com.plexapp.agents.opensubtitles','com.plexapp.agents.podnapisi','com.plexapp.agents.subzero']
@@ -114,7 +114,8 @@ class xbmcnfo(Agent.Movies):
 		self.DLog("++++++++++++++++++++++++")
 		Log ("" + self.name + " Version: " + self.ver)
 
-		path1 = String.Unquote(media.filename)
+		path1 = media.items[0].parts[0].file
+		self.DLog('media file: ' + path1)
 		folderpath = os.path.dirname(path1)
 		self.DLog('folderpath: ' + folderpath)
 
