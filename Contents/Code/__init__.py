@@ -503,15 +503,17 @@ class xbmcnfo(Agent.Movies):
 				try:
 					credits = nfoXML.xpath('credits')
 					metadata.writers.clear()
-					[metadata.writers.add(c.strip()) for creditXML in credits for c in creditXML.text.split("/")]
-					metadata.writers.discard('')
+					for creditXML in credits:
+						for c in creditXML.text.split("/"):
+							metadata.writers.new().name = c.strip()
 				except: pass
 				# Directors
 				try:
 					directors = nfoXML.xpath('director')
 					metadata.directors.clear()
-					[metadata.directors.add(d.strip()) for directorXML in directors for d in directorXML.text.split("/")]
-					metadata.directors.discard('')
+					for directorXML in directors:
+						for d in directorXML.text.split("/"):
+							metadata.directors.new().name = d.strip()
 				except: pass
 				# Genres
 				try:
@@ -554,9 +556,9 @@ class xbmcnfo(Agent.Movies):
 				metadata.roles.clear()
 				for actor in nfoXML.xpath('actor'):
 					role = metadata.roles.new()
-					try: role.actor = actor.xpath("name")[0].text
+					try: role.name = actor.xpath("name")[0].text
 					except:
-						role.actor = "unknown"
+						role.name = "unknown"
 					try: role.role = actor.xpath("role")[0].text
 					except:
 						role.role = "unknown"
@@ -616,10 +618,10 @@ class xbmcnfo(Agent.Movies):
 				try: Log("Summary: " + str(metadata.summary))
 				except: Log("Summary: -")
 				Log("Writers:")
-				try: [Log("\t" + writer) for writer in metadata.writers]
+				try: [Log("\t" + writer.name) for writer in metadata.writers]
 				except: Log("\t-")
 				Log("Directors:")
-				try: [Log("\t" + director) for director in metadata.directors]
+				try: [Log("\t" + director.name) for director in metadata.directors]
 				except: Log("\t-")
 				Log("Genres:")
 				try: [Log("\t" + genre) for genre in metadata.genres]
@@ -633,8 +635,8 @@ class xbmcnfo(Agent.Movies):
 				try: Log("Duration: " + str(metadata.duration // 60000) + ' min')
 				except: Log("Duration: -")
 				Log("Actors:")
-				try: [Log("\t" + actor.actor + " > " + actor.role) for actor in metadata.roles]
-				except: [Log("\t" + actor.actor) for actor in metadata.roles]
+				try: [Log("\t" + actor.name + " > " + actor.role) for actor in metadata.roles]
+				except: [Log("\t" + actor.name) for actor in metadata.roles]
 				except: Log("\t-")
 				Log("---------------------")
 			else:
