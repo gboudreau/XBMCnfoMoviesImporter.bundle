@@ -27,7 +27,7 @@ PERCENT_RATINGS = {
 
 class xbmcnfo(Agent.Movies):
 	name = 'XBMCnfoMoviesImporter'
-	ver = '1.1-43-g7a8865c-149'
+	ver = '1.1-44-gd183e16-150'
 	primary_provider = True
 	languages = [Locale.Language.NoLanguage]
 	accepts_from = ['com.plexapp.agents.localmedia','com.plexapp.agents.opensubtitles','com.plexapp.agents.podnapisi','com.plexapp.agents.subzero']
@@ -458,13 +458,22 @@ class xbmcnfo(Agent.Movies):
 					pass
 				# Ratings
 				try:
+					nforating = None
 					nforating = round(float(nfoXML.xpath("rating")[0].text.replace(',', '.')),1)
 					metadata.rating = nforating
 					self.DLog("Series Rating found: " + str(nforating))
 				except:
-					self.DLog("Can't read rating from tvshow.nfo.")
-					nforating = 0.0
 					pass
+				if not nforating:
+					self.DLog("Reading old rating style failed. Trying new Krypton style.")
+					for rating in nfoXML.xpath('rating'):
+						try:
+							nforating = round(float(rating.xpath("value")[0].text.replace(',', '.')),1)
+							self.DLog("Krypton style series rating found: " + str(nforating))
+						except:
+							self.DLog("Can't read rating from tvshow.nfo.")
+							nforating = 0.0
+							pass
 				if Prefs['altratings']:
 					self.DLog("Searching for additional Ratings...")
 					allowedratings = Prefs['ratings']
