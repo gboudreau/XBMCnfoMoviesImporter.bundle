@@ -27,7 +27,7 @@ PERCENT_RATINGS = {
 
 class xbmcnfo(Agent.Movies):
 	name = 'XBMCnfoMoviesImporter'
-	ver = '1.1-40-g48a280b-146'
+	ver = '1.1-43-g7a8865c-149'
 	primary_provider = True
 	languages = [Locale.Language.NoLanguage]
 	accepts_from = ['com.plexapp.agents.localmedia','com.plexapp.agents.opensubtitles','com.plexapp.agents.podnapisi','com.plexapp.agents.subzero']
@@ -380,6 +380,7 @@ class xbmcnfo(Agent.Movies):
 				# Premiere
 				try:
 					release_string = None
+					release_date = None
 					try:
 						self.DLog("Reading releasedate tag...")
 						release_string = nfoXML.xpath("releasedate")[0].text.strip()
