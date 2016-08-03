@@ -27,7 +27,7 @@ PERCENT_RATINGS = {
 
 class xbmcnfo(Agent.Movies):
 	name = 'XBMCnfoMoviesImporter'
-	ver = '1.1-44-gd183e16-150'
+	ver = '1.1-45-g2991e25-151'
 	primary_provider = True
 	languages = [Locale.Language.NoLanguage]
 	accepts_from = ['com.plexapp.agents.localmedia','com.plexapp.agents.opensubtitles','com.plexapp.agents.podnapisi','com.plexapp.agents.subzero']
@@ -460,7 +460,6 @@ class xbmcnfo(Agent.Movies):
 				try:
 					nforating = None
 					nforating = round(float(nfoXML.xpath("rating")[0].text.replace(',', '.')),1)
-					metadata.rating = nforating
 					self.DLog("Series Rating found: " + str(nforating))
 				except:
 					pass
@@ -503,12 +502,14 @@ class xbmcnfo(Agent.Movies):
 									metadata.summary = self.unescape("&#9733; ") + addratingsstring[3:] + self.unescape(" &#9733;\n\n") + metadata.summary
 							else:
 								metadata.summary = metadata.summary + self.unescape("\n\n&#9733; ") + addratingsstring[3:] + self.unescape(" &#9733;")
-					if Prefs['preserverating']:
-						self.DLog("Putting .nfo rating in front of summary!")
-						metadata.summary = self.unescape(str(Prefs['beforerating'])) + "{:.1f}".format(nforating) + self.unescape(str(Prefs['afterrating'])) + metadata.summary
-						metadata.rating = nforating
-					else:
-						metadata.rating = nforating
+				if Prefs['preserverating']:
+					self.DLog("Putting .nfo rating in front of summary!")
+					if not nforating:
+						nforating = 0.0
+					metadata.summary = self.unescape(str(Prefs['beforerating'])) + "{:.1f}".format(nforating) + self.unescape(str(Prefs['afterrating'])) + metadata.summary
+					metadata.rating = nforating
+				else:
+					metadata.rating = nforating
 				# Writers (Credits)
 				try:
 					credits = nfoXML.xpath('credits')
