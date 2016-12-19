@@ -573,6 +573,9 @@ class xbmcnfo(Agent.Movies):
 					try: role.role = actor.xpath("role")[0].text
 					except:
 						role.role = "unknown"
+					try: role.photo = actor.xpath("thumb")[0].text
+					except:
+						pass
 
 				# Remote posters and fanarts are disabled for now; having them seems to stop the local artworks from being used.
 				#(remote) posters
