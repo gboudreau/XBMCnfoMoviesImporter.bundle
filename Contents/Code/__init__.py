@@ -27,10 +27,11 @@ PERCENT_RATINGS = {
 
 class xbmcnfo(Agent.Movies):
 	name = 'XBMCnfoMoviesImporter'
-	ver = '1.1-45-g2991e25-151'
+	ver = '1.1-48-g68b9431-154'
 	primary_provider = True
 	languages = [Locale.Language.NoLanguage]
-	accepts_from = ['com.plexapp.agents.localmedia','com.plexapp.agents.opensubtitles','com.plexapp.agents.podnapisi','com.plexapp.agents.subzero']
+	accepts_from = ['com.plexapp.agents.localmedia','com.plexapp.agents.opensubtitles','com.plexapp.agents.podnapisi','com.plexapp.agents.subzero','com.plexapp.agents.thetvdb','com.plexapp.agents.themoviedb']
+	contributes_to = ['com.plexapp.agents.thetvdb','com.plexapp.agents.themoviedb']
 
 ##### helper functions #####
 	def DLog (self, LogMessage):

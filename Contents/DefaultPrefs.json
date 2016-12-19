@@ -7,6 +7,12 @@
     "default":"false"
   },
   {
+    "id":"fallback",
+    "label":"enable fallback to online angents",
+    "type":"bool",
+    "default":"true"
+  },
+  {
     "id":"dayfirst",
     "label":"enable day first in ambiguous dates",
     "type":"bool",
