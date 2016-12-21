@@ -27,7 +27,7 @@ PERCENT_RATINGS = {
 
 class xbmcnfo(Agent.Movies):
 	name = 'XBMCnfoMoviesImporter'
-	ver = '1.1-49-gfbe8a2b-155'
+	ver = '1.1-50-g4dcdc16-156'
 	primary_provider = True
 	languages = [Locale.Language.NoLanguage]
 	accepts_from = ['com.plexapp.agents.localmedia','com.plexapp.agents.opensubtitles','com.plexapp.agents.podnapisi','com.plexapp.agents.subzero']
@@ -487,21 +487,29 @@ class xbmcnfo(Agent.Movies):
 					if addratings:
 						for addratingXML in addratings:
 							for addrating in addratingXML:
-								ratingprovider = str(addrating.attrib['moviedb'])
+								try:
+									ratingprovider = str(addrating.attrib['moviedb'])
+								except:
+									pass
+									self.DLog("Skipping additional rating without moviedb attribute!")
+									continue
 								ratingvalue = str(addrating.text.replace (',','.'))
 								if ratingprovider.lower() in PERCENT_RATINGS:
 									ratingvalue = ratingvalue + "%"
 								if ratingprovider in allowedratings or allowedratings == "":
 									self.DLog("adding rating: " + ratingprovider + ": " + ratingvalue)
 									addratingsstring = addratingsstring + " | " + ratingprovider + ": " + ratingvalue
-							self.DLog("Putting additional ratings at the " + Prefs['ratingspos'] + " of the summary!")
-							if Prefs['ratingspos'] == "front":
-								if Prefs['preserverating']:
-									metadata.summary = addratingsstring[3:] + self.unescape(" &#9733;\n\n") + metadata.summary
+							if addratingsstring != "":
+								self.DLog("Putting additional ratings at the " + Prefs['ratingspos'] + " of the summary!")
+								if Prefs['ratingspos'] == "front":
+									if Prefs['preserverating']:
+										metadata.summary = addratingsstring[3:] + self.unescape(" &#9733;\n\n") + metadata.summary
+									else:
+										metadata.summary = self.unescape("&#9733; ") + addratingsstring[3:] + self.unescape(" &#9733;\n\n") + metadata.summary
 								else:
-									metadata.summary = self.unescape("&#9733; ") + addratingsstring[3:] + self.unescape(" &#9733;\n\n") + metadata.summary
+									metadata.summary = metadata.summary + self.unescape("\n\n&#9733; ") + addratingsstring[3:] + self.unescape(" &#9733;")
 							else:
-								metadata.summary = metadata.summary + self.unescape("\n\n&#9733; ") + addratingsstring[3:] + self.unescape(" &#9733;")
+								self.DLog("Additional ratings empty or malformed!")
 				if Prefs['preserverating']:
 					self.DLog("Putting .nfo rating in front of summary!")
 					if not nforating:
@@ -545,7 +553,6 @@ class xbmcnfo(Agent.Movies):
 					sets = nfoXML.xpath('set')
 					metadata.collections.clear()
 					[metadata.collections.add(s.strip()) for setXML in sets for s in setXML.text.split("/")]
-					metadata.collections.discard('')
 				except: pass
 				# Duration
 				try:
