@@ -7,6 +7,12 @@
     "default":"false"
   },
   {
+    "id":"localmediaagent",
+    "label":"disable agents artwork support (use local media assets instead)",
+    "type":"bool",
+    "default":"false"
+  },
+  {
     "id":"dayfirst",
     "label":"enable day first in ambiguous dates",
     "type":"bool",

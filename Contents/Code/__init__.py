@@ -27,7 +27,7 @@ PERCENT_RATINGS = {
 
 class xbmcnfo(Agent.Movies):
 	name = 'XBMCnfoMoviesImporter'
-	ver = '1.1-50-g4dcdc16-156'
+	ver = '1.1-51-g3e09ff1-157'
 	primary_provider = True
 	languages = [Locale.Language.NoLanguage]
 	accepts_from = ['com.plexapp.agents.localmedia','com.plexapp.agents.opensubtitles','com.plexapp.agents.podnapisi','com.plexapp.agents.subzero']
@@ -218,61 +218,62 @@ class xbmcnfo(Agent.Movies):
 		# Moviename from folder
 		moviename = self.getMovieNameFromFolder (folderpath, False)
 
-		posterData = None
-		posterFilename = ""
-		posterNames = []
-		# Frodo
-		posterNames.append (self.getRelatedFile(path1, '-poster.jpg'))
-		posterNames.append (movienamewithyear + '-poster.jpg')
-		posterNames.append (moviename + '-poster.jpg')
-		posterNames.append (os.path.join(folderpath, 'poster.jpg'))
-		if isDVD: posterNames.append (os.path.join(folderpathDVD, 'poster.jpg'))
-		# Eden
-		posterNames.append (self.getRelatedFile(path1, '.tbn'))
-		posterNames.append (folderpath + "/folder.jpg")
-		if isDVD: posterNames.append (os.path.join(folderpathDVD, 'folder.jpg'))
-		# DLNA
-		posterNames.append (self.getRelatedFile(path1, '.jpg'))
-		# Others
-		posterNames.append (folderpath + "/cover.jpg")
-		if isDVD: posterNames.append (os.path.join(folderpathDVD, 'cover.jpg'))
-		posterNames.append (folderpath + "/default.jpg")
-		if isDVD: posterNames.append (os.path.join(folderpathDVD, 'default.jpg'))
-		posterNames.append (folderpath + "/movie.jpg")
-		if isDVD: posterNames.append (os.path.join(folderpathDVD, 'movie.jpg'))
+		if not Prefs['localmediaagent']:
+			posterData = None
+			posterFilename = ""
+			posterNames = []
+			# Frodo
+			posterNames.append (self.getRelatedFile(path1, '-poster.jpg'))
+			posterNames.append (movienamewithyear + '-poster.jpg')
+			posterNames.append (moviename + '-poster.jpg')
+			posterNames.append (os.path.join(folderpath, 'poster.jpg'))
+			if isDVD: posterNames.append (os.path.join(folderpathDVD, 'poster.jpg'))
+			# Eden
+			posterNames.append (self.getRelatedFile(path1, '.tbn'))
+			posterNames.append (folderpath + "/folder.jpg")
+			if isDVD: posterNames.append (os.path.join(folderpathDVD, 'folder.jpg'))
+			# DLNA
+			posterNames.append (self.getRelatedFile(path1, '.jpg'))
+			# Others
+			posterNames.append (folderpath + "/cover.jpg")
+			if isDVD: posterNames.append (os.path.join(folderpathDVD, 'cover.jpg'))
+			posterNames.append (folderpath + "/default.jpg")
+			if isDVD: posterNames.append (os.path.join(folderpathDVD, 'default.jpg'))
+			posterNames.append (folderpath + "/movie.jpg")
+			if isDVD: posterNames.append (os.path.join(folderpathDVD, 'movie.jpg'))
 
-		# check possible poster file locations
-		posterFilename = self.checkFilePaths (posterNames, 'poster')
+			# check possible poster file locations
+			posterFilename = self.checkFilePaths (posterNames, 'poster')
 
-		if posterFilename:
-			posterData = Core.storage.load(posterFilename)
-			for key in metadata.posters.keys():
-				del metadata.posters[key]
+			if posterFilename:
+				posterData = Core.storage.load(posterFilename)
+				for key in metadata.posters.keys():
+					del metadata.posters[key]
 
-		fanartData = None
-		fanartFilename = ""
-		fanartNames = []
-		# Eden / Frodo
-		fanartNames.append (self.getRelatedFile(path1, '-fanart.jpg'))
-		fanartNames.append (movienamewithyear + '-fanart.jpg')
-		fanartNames.append (moviename + '-fanart.jpg')
-		fanartNames.append (os.path.join(folderpath, 'fanart.jpg'))
-		if isDVD: fanartNames.append (os.path.join(folderpathDVD, 'fanart.jpg'))
-		# Others
-		fanartNames.append (os.path.join(folderpath, 'art.jpg'))
-		if isDVD: fanartNames.append (os.path.join(folderpathDVD, 'art.jpg'))
-		fanartNames.append (os.path.join(folderpath, 'backdrop.jpg'))
-		if isDVD: fanartNames.append (os.path.join(folderpathDVD, 'backdrop.jpg'))
-		fanartNames.append (os.path.join(folderpath, 'background.jpg'))
-		if isDVD: fanartNames.append (os.path.join(folderpathDVD, 'background.jpg'))
+			fanartData = None
+			fanartFilename = ""
+			fanartNames = []
+			# Eden / Frodo
+			fanartNames.append (self.getRelatedFile(path1, '-fanart.jpg'))
+			fanartNames.append (movienamewithyear + '-fanart.jpg')
+			fanartNames.append (moviename + '-fanart.jpg')
+			fanartNames.append (os.path.join(folderpath, 'fanart.jpg'))
+			if isDVD: fanartNames.append (os.path.join(folderpathDVD, 'fanart.jpg'))
+			# Others
+			fanartNames.append (os.path.join(folderpath, 'art.jpg'))
+			if isDVD: fanartNames.append (os.path.join(folderpathDVD, 'art.jpg'))
+			fanartNames.append (os.path.join(folderpath, 'backdrop.jpg'))
+			if isDVD: fanartNames.append (os.path.join(folderpathDVD, 'backdrop.jpg'))
+			fanartNames.append (os.path.join(folderpath, 'background.jpg'))
+			if isDVD: fanartNames.append (os.path.join(folderpathDVD, 'background.jpg'))
 
-		# check possible fanart file locations
-		fanartFilename = self.checkFilePaths (fanartNames, 'fanart')
+			# check possible fanart file locations
+			fanartFilename = self.checkFilePaths (fanartNames, 'fanart')
 
-		if fanartFilename:
-			fanartData = Core.storage.load(fanartFilename)
-			for key in metadata.art.keys():
-				del metadata.art[key]
+			if fanartFilename:
+				fanartData = Core.storage.load(fanartFilename)
+				for key in metadata.art.keys():
+					del metadata.art[key]
 
 		nfoNames = []
 		# Eden / Frodo
@@ -584,33 +585,34 @@ class xbmcnfo(Agent.Movies):
 					except:
 						pass
 
-				# Remote posters and fanarts are disabled for now; having them seems to stop the local artworks from being used.
-				#(remote) posters
-				#(local) poster
-				if posterData:
-					metadata.posters[posterFilename] = Proxy.Media(posterData)
-				#(remote) fanart
-				#(local) fanart
-				if fanartData:
-					metadata.art[fanartFilename] = Proxy.Media(fanartData)
+				if not Prefs['localmediaagent']:
+					# Remote posters and fanarts are disabled for now; having them seems to stop the local artworks from being used.
+					#(remote) posters
+					#(local) poster
+					if posterData:
+						metadata.posters[posterFilename] = Proxy.Media(posterData)
+					#(remote) fanart
+					#(local) fanart
+					if fanartData:
+						metadata.art[fanartFilename] = Proxy.Media(fanartData)
 
-				# Trailer Support
-				# Eden / Frodo
-				if Prefs['trailer']:
-					for f in os.listdir(folderpath):
-						(fn, ext) = os.path.splitext(f)
-						try:
-							title = ""
-							if fn.endswith('-trailer'):
-									title = ' '.join(fn.split('-')[:-1])
-							if fn == "trailer" or f.startswith ('movie-trailer'):
-									title = metadata.title
-							if title != "":
-								metadata.extras.add(TrailerObject(title=title, file=os.path.join(folderpath, f)))
-								self.DLog("Found trailer file " + os.path.join(folderpath, f))
-								self.DLog("Trailer title:" + title)
-						except:
-							self.DLog("Exception adding trailer file!")
+					# Trailer Support
+					# Eden / Frodo
+					if Prefs['trailer']:
+						for f in os.listdir(folderpath):
+							(fn, ext) = os.path.splitext(f)
+							try:
+								title = ""
+								if fn.endswith('-trailer'):
+										title = ' '.join(fn.split('-')[:-1])
+								if fn == "trailer" or f.startswith ('movie-trailer'):
+										title = metadata.title
+								if title != "":
+									metadata.extras.add(TrailerObject(title=title, file=os.path.join(folderpath, f)))
+									self.DLog("Found trailer file " + os.path.join(folderpath, f))
+									self.DLog("Trailer title:" + title)
+							except:
+								self.DLog("Exception adding trailer file!")
 
 
 				Log("---------------------")
