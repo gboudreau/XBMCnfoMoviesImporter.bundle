@@ -7,6 +7,7 @@
 # Cleanup and some extensions by SlrG
 # Multipart filter idea by diamondsw
 # Logo by CrazyRabbit
+# Krypton Rating fix by F4RHaD
 #
 import os, re, time, datetime, platform, traceback, re, htmlentitydefs
 from dateutil.parser import parse
@@ -27,7 +28,7 @@ PERCENT_RATINGS = {
 
 class xbmcnfo(Agent.Movies):
 	name = 'XBMCnfoMoviesImporter'
-	ver = '1.1-51-g3e09ff1-157'
+	ver = '1.1-52-g75074b5-158'
 	primary_provider = True
 	languages = [Locale.Language.NoLanguage]
 	accepts_from = ['com.plexapp.agents.localmedia','com.plexapp.agents.opensubtitles','com.plexapp.agents.podnapisi','com.plexapp.agents.subzero']
@@ -466,8 +467,9 @@ class xbmcnfo(Agent.Movies):
 					pass
 				if not nforating:
 					self.DLog("Reading old rating style failed. Trying new Krypton style.")
-					for rating in nfoXML.xpath('rating'):
+					for ratings in nfoXML.xpath('ratings'):
 						try:
+							rating=ratings.xpath("rating")[0]
 							nforating = round(float(rating.xpath("value")[0].text.replace(',', '.')),1)
 							self.DLog("Krypton style series rating found: " + str(nforating))
 						except:
