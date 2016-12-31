@@ -1,5 +1,6 @@
 # XBMCnfoMoviesImporter
-# spec'd from: http://wiki.xbmc.org/index.php?title=Import_-_Export_Library#Video_nfo_Files
+# spec'd from:
+#  http://wiki.xbmc.org/index.php?title=Import_-_Export_Library#Video_nfo_Files
 #
 # Original code author: Harley Hooligan
 # Modified by Guillaume Boudreau
@@ -96,7 +97,8 @@ class xbmcnfo(Agent.Movies):
 
     ##
     # Removes HTML or XML character references and entities from a text string.
-    # Copyright: http://effbot.org/zone/re-sub.htm October 28, 2006 | Fredrik Lundh
+    # Copyright:
+    #  http://effbot.org/zone/re-sub.htm October 28, 2006 | Fredrik Lundh
     # @param text The HTML (or XML) source text.
     # @return The plain text, as a Unicode string, if necessary.
 
