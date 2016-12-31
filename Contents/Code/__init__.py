@@ -149,7 +149,8 @@ class xbmcnfo(Agent.Movies):
         nfoNames.append(os.path.join(folderpath, 'movie.nfo'))
         # last resort - use first found .nfo
         nfoFiles = [f for f in os.listdir(folderpath) if f.endswith('.nfo')]
-        if nfoFiles: nfoNames.append(os.path.join(folderpath, nfoFiles[0]))
+        if nfoFiles:
+            nfoNames.append(os.path.join(folderpath, nfoFiles[0]))
 
         # check possible .nfo file locations
         nfoFile = self.checkFilePaths(nfoNames, '.nfo')
@@ -169,18 +170,21 @@ class xbmcnfo(Agent.Movies):
                 nfoText = '%s</movie>' % nfoText.rsplit('</movie>', 1)[0]
 
                 # likely an xbmc nfo file
-                try: nfoXML = XML.ElementFromString(nfoText).xpath('//movie')[0]
+                try:
+                    nfoXML = XML.ElementFromString(nfoText).xpath('//movie')[0]
                 except:
                     self.DLog('ERROR: Cant parse XML in ' + nfoFile + '. Aborting!')
                     return
 
                 # Title
-                try: media.name = nfoXML.xpath('title')[0].text
+                try:
+                    media.name = nfoXML.xpath('title')[0].text
                 except:
                     self.DLog("ERROR: No <title> tag in " + nfoFile + ". Aborting!")
                     return
                 # Sort Title
-                try: media.title_sort = nfoXML.xpath('sorttitle')[0].text
+                try:
+                    media.title_sort = nfoXML.xpath('sorttitle')[0].text
                 except:
                     self.DLog("No <sorttitle> tag in " + nfoFile + ".")
                     pass
@@ -188,7 +192,8 @@ class xbmcnfo(Agent.Movies):
                 try:
                     media.year = int(nfoXML.xpath('year')[0].text.strip())
                     self.DLog("Reading year tag: " + str(media.year))
-                except: pass
+                except:
+                    pass
                 # ID
                 try:
                     id = nfoXML.xpath('id')[0].text.strip()
@@ -208,8 +213,10 @@ class xbmcnfo(Agent.Movies):
                     self.DLog("ID generated: " + media.id)
 
                 results.Append(MetadataSearchResult(id=media.id, name=media.name, year=media.year, lang=lang, score=100))
-                try: Log('Found movie information in NFO file: title = ' + media.name + ', year = ' + str(media.year) + ', id = ' + media.id)
-                except: pass
+                try:
+                    Log('Found movie information in NFO file: title = ' + media.name + ', year = ' + str(media.year) + ', id = ' + media.id)
+                except:
+                    pass
             else:
                 Log("ERROR: No <movie> tag in " + nfoFile + ". Aborting!")
 
@@ -225,7 +232,8 @@ class xbmcnfo(Agent.Movies):
         folderpath = os.path.dirname(path1)
         self.DLog('folderpath: ' + folderpath)
         isDVD = os.path.basename(folderpath).upper() == 'VIDEO_TS'
-        if isDVD: folderpathDVD = os.path.dirname(folderpath)
+        if isDVD:
+            folderpathDVD = os.path.dirname(folderpath)
 
         # Moviename with year from folder
         movienamewithyear = self.getMovieNameFromFolder(folderpath, True)
@@ -241,20 +249,25 @@ class xbmcnfo(Agent.Movies):
             posterNames.append(movienamewithyear + '-poster.jpg')
             posterNames.append(moviename + '-poster.jpg')
             posterNames.append(os.path.join(folderpath, 'poster.jpg'))
-            if isDVD: posterNames.append(os.path.join(folderpathDVD, 'poster.jpg'))
+            if isDVD:
+                posterNames.append(os.path.join(folderpathDVD, 'poster.jpg'))
             # Eden
             posterNames.append(self.getRelatedFile(path1, '.tbn'))
             posterNames.append(folderpath + "/folder.jpg")
-            if isDVD: posterNames.append(os.path.join(folderpathDVD, 'folder.jpg'))
+            if isDVD:
+                posterNames.append(os.path.join(folderpathDVD, 'folder.jpg'))
             # DLNA
             posterNames.append(self.getRelatedFile(path1, '.jpg'))
             # Others
             posterNames.append(folderpath + "/cover.jpg")
-            if isDVD: posterNames.append(os.path.join(folderpathDVD, 'cover.jpg'))
+            if isDVD:
+                posterNames.append(os.path.join(folderpathDVD, 'cover.jpg'))
             posterNames.append(folderpath + "/default.jpg")
-            if isDVD: posterNames.append(os.path.join(folderpathDVD, 'default.jpg'))
+            if isDVD:
+                posterNames.append(os.path.join(folderpathDVD, 'default.jpg'))
             posterNames.append(folderpath + "/movie.jpg")
-            if isDVD: posterNames.append(os.path.join(folderpathDVD, 'movie.jpg'))
+            if isDVD:
+                posterNames.append(os.path.join(folderpathDVD, 'movie.jpg'))
 
             # check possible poster file locations
             posterFilename = self.checkFilePaths(posterNames, 'poster')
@@ -272,14 +285,18 @@ class xbmcnfo(Agent.Movies):
             fanartNames.append(movienamewithyear + '-fanart.jpg')
             fanartNames.append(moviename + '-fanart.jpg')
             fanartNames.append(os.path.join(folderpath, 'fanart.jpg'))
-            if isDVD: fanartNames.append(os.path.join(folderpathDVD, 'fanart.jpg'))
+            if isDVD:
+                fanartNames.append(os.path.join(folderpathDVD, 'fanart.jpg'))
             # Others
             fanartNames.append(os.path.join(folderpath, 'art.jpg'))
-            if isDVD: fanartNames.append(os.path.join(folderpathDVD, 'art.jpg'))
+            if isDVD:
+                fanartNames.append(os.path.join(folderpathDVD, 'art.jpg'))
             fanartNames.append(os.path.join(folderpath, 'backdrop.jpg'))
-            if isDVD: fanartNames.append(os.path.join(folderpathDVD, 'backdrop.jpg'))
+            if isDVD:
+                fanartNames.append(os.path.join(folderpathDVD, 'backdrop.jpg'))
             fanartNames.append(os.path.join(folderpath, 'background.jpg'))
-            if isDVD: fanartNames.append(os.path.join(folderpathDVD, 'background.jpg'))
+            if isDVD:
+                fanartNames.append(os.path.join(folderpathDVD, 'background.jpg'))
 
             # check possible fanart file locations
             fanartFilename = self.checkFilePaths(fanartNames, 'fanart')
@@ -300,7 +317,8 @@ class xbmcnfo(Agent.Movies):
         nfoNames.append(os.path.join(folderpath, 'movie.nfo'))
         # last resort - use first found .nfo
         nfoFiles = [f for f in os.listdir(folderpath) if f.endswith('.nfo')]
-        if nfoFiles: nfoNames.append(os.path.join(folderpath, nfoFiles[0]))
+        if nfoFiles:
+            nfoNames.append(os.path.join(folderpath, nfoFiles[0]))
 
         # check possible .nfo file locations
         nfoFile = self.checkFilePaths(nfoNames, '.nfo')
@@ -320,7 +338,8 @@ class xbmcnfo(Agent.Movies):
                 nfoText = '%s</movie>' % nfoText.rsplit('</movie>', 1)[0]
 
                 # likely an xbmc nfo file
-                try: nfoXML = XML.ElementFromString(nfoText).xpath('//movie')[0]
+                try:
+                    nfoXML = XML.ElementFromString(nfoText).xpath('//movie')[0]
                 except:
                     self.DLog('ERROR: Cant parse XML in ' + nfoFile + '. Aborting!')
                     return
@@ -330,12 +349,14 @@ class xbmcnfo(Agent.Movies):
                 nfoXML = self.RemoveEmptyTags(nfoXML)
 
                 # Title
-                try: metadata.title = nfoXML.xpath('title')[0].text.strip()
+                try:
+                    metadata.title = nfoXML.xpath('title')[0].text.strip()
                 except:
                     self.DLog("ERROR: No <title> tag in " + nfoFile + ". Aborting!")
                     return
                 # Sort Title
-                try: metadata.title_sort = nfoXML.xpath('sorttitle')[0].text.strip()
+                try:
+                    metadata.title_sort = nfoXML.xpath('sorttitle')[0].text.strip()
                 except:
                     self.DLog("No <sorttitle> tag in " + nfoFile + ".")
                     pass
@@ -343,10 +364,13 @@ class xbmcnfo(Agent.Movies):
                 try:
                     metadata.year = int(nfoXML.xpath('year')[0].text.strip())
                     self.DLog("Set year tag: " + str(metadata.year))
-                except: pass
+                except:
+                    pass
                 # Original Title
-                try: metadata.original_title = nfoXML.xpath('originaltitle')[0].text.strip()
-                except: pass
+                try:
+                    metadata.original_title = nfoXML.xpath('originaltitle')[0].text.strip()
+                except:
+                    pass
                 # Content Rating
                 metadata.content_rating = ''
                 content_rating = {}
@@ -357,21 +381,26 @@ class xbmcnfo(Agent.Movies):
                     if match.group('mpaa'):
                         mpaa_rating = match.group('mpaa')
                         self.DLog('MPAA Rating: ' + mpaa_rating)
-                except: pass
+                except:
+                    pass
                 try:
                     for cert in nfoXML.xpath('certification')[0].text.split(" / "):
                         country = cert.strip()
                         country = country.split(':')
                         if not country[0] in content_rating:
                             if country[0] == "Australia":
-                                if country[1] == "MA": country[1] = "MA15"
-                                if country[1] == "R": country[1] = "R18"
-                                if country[1] == "X": country[1] = "X18"
+                                if country[1] == "MA":
+                                    country[1] = "MA15"
+                                if country[1] == "R":
+                                    country[1] = "R18"
+                                if country[1] == "X":
+                                    country[1] = "X18"
                             if country[0] == "DE":
                                 country[0] = "Germany"
                             content_rating[country[0]] = country[1].strip('+').replace('FSK', '').replace('ab ', '').strip()
                     self.DLog('Content Rating(s): ' + str(content_rating))
-                except: pass
+                except:
+                    pass
                 if Prefs['country'] != '':
                     cc = COUNTRY_CODES[Prefs['country']].split(',')
                     self.DLog('Country code from settings: ' + Prefs['country'] + ':' + str(cc))
@@ -390,8 +419,10 @@ class xbmcnfo(Agent.Movies):
                     metadata.content_rating = re.sub(r'\s*\(.*?\)', '', metadata.content_rating)
 
                 # Studio
-                try: metadata.studio = nfoXML.xpath("studio")[0].text.strip()
-                except: pass
+                try:
+                    metadata.studio = nfoXML.xpath("studio")[0].text.strip()
+                except:
+                    pass
                 # Premiere
                 try:
                     release_string = None
@@ -444,11 +475,14 @@ class xbmcnfo(Agent.Movies):
                     else:
                         self.DLog("Setting releasedate...")
                         metadata.originally_available_at = release_date
-                except: pass
+                except:
+                    pass
 
                 # Tagline
-                try: metadata.tagline = nfoXML.xpath("tagline")[0].text.strip()
-                except: pass
+                try:
+                    metadata.tagline = nfoXML.xpath("tagline")[0].text.strip()
+                except:
+                    pass
                 # Summary (Outline/Plot)
                 try:
                     if Prefs['plot']:
@@ -492,7 +526,8 @@ class xbmcnfo(Agent.Movies):
                 if Prefs['altratings']:
                     self.DLog("Searching for additional Ratings...")
                     allowedratings = Prefs['ratings']
-                    if not allowedratings: allowedratings = ""
+                    if not allowedratings:
+                        allowedratings = ""
                     addratingsstring = ""
                     try:
                         addratings = nfoXML.xpath('ratings')
@@ -541,7 +576,8 @@ class xbmcnfo(Agent.Movies):
                     for creditXML in credits:
                         for c in creditXML.text.split("/"):
                             metadata.writers.new().name = c.strip()
-                except: pass
+                except:
+                    pass
                 # Directors
                 try:
                     directors = nfoXML.xpath('director')
@@ -549,27 +585,31 @@ class xbmcnfo(Agent.Movies):
                     for directorXML in directors:
                         for d in directorXML.text.split("/"):
                             metadata.directors.new().name = d.strip()
-                except: pass
+                except:
+                    pass
                 # Genres
                 try:
                     genres = nfoXML.xpath('genre')
                     metadata.genres.clear()
                     [metadata.genres.add(g.strip()) for genreXML in genres for g in genreXML.text.split("/")]
                     metadata.genres.discard('')
-                except: pass
+                except:
+                    pass
                 # Countries
                 try:
                     countries = nfoXML.xpath('country')
                     metadata.countries.clear()
                     [metadata.countries.add(c.strip()) for countryXML in countries for c in countryXML.text.split("/")]
                     metadata.countries.discard('')
-                except: pass
+                except:
+                    pass
                 # Collections (Set)
                 try:
                     sets = nfoXML.xpath('set')
                     metadata.collections.clear()
                     [metadata.collections.add(s.strip()) for setXML in sets for s in setXML.text.split("/")]
-                except: pass
+                except:
+                    pass
                 # Duration
                 try:
                     self.DLog("Trying to read <durationinseconds> tag from .nfo file...")
@@ -590,13 +630,16 @@ class xbmcnfo(Agent.Movies):
                 metadata.roles.clear()
                 for actor in nfoXML.xpath('actor'):
                     role = metadata.roles.new()
-                    try: role.name = actor.xpath("name")[0].text
+                    try:
+                        role.name = actor.xpath("name")[0].text
                     except:
                         role.name = "unknown"
-                    try: role.role = actor.xpath("role")[0].text
+                    try:
+                        role.role = actor.xpath("role")[0].text
                     except:
                         role.role = "unknown"
-                    try: role.photo = actor.xpath("thumb")[0].text
+                    try:
+                        role.photo = actor.xpath("thumb")[0].text
                     except:
                         pass
 
@@ -633,49 +676,86 @@ class xbmcnfo(Agent.Movies):
                 Log("---------------------")
                 Log("Movie nfo Information")
                 Log("---------------------")
-                try: Log("ID: " + str(metadata.guid))
-                except: Log("ID: -")
-                try: Log("Title: " + str(metadata.title))
-                except: Log("Title: -")
-                try: Log("Sort Title: " + str(metadata.title_sort))
-                except: Log("Sort Title: -")
-                try: Log("Year: " + str(metadata.year))
-                except: Log("Year: -")
-                try: Log("Original: " + str(metadata.original_title))
-                except: Log("Original: -")
-                try: Log("Rating: " + str(metadata.rating))
-                except: Log("Rating: -")
-                try: Log("Content: " + str(metadata.content_rating))
-                except: Log("Content: -")
-                try: Log("Studio: " + str(metadata.studio))
-                except: Log("Studio: -")
-                try: Log("Premiere: " + str(metadata.originally_available_at))
-                except: Log("Premiere: -")
-                try: Log("Tagline: " + str(metadata.tagline))
-                except: Log("Tagline: -")
-                try: Log("Summary: " + str(metadata.summary))
-                except: Log("Summary: -")
+                try:
+                    Log("ID: " + str(metadata.guid))
+                except:
+                    Log("ID: -")
+                try:
+                    Log("Title: " + str(metadata.title))
+                except:
+                    Log("Title: -")
+                try:
+                    Log("Sort Title: " + str(metadata.title_sort))
+                except:
+                    Log("Sort Title: -")
+                try:
+                    Log("Year: " + str(metadata.year))
+                except:
+                    Log("Year: -")
+                try:
+                    Log("Original: " + str(metadata.original_title))
+                except:
+                    Log("Original: -")
+                try:
+                    Log("Rating: " + str(metadata.rating))
+                except:
+                    Log("Rating: -")
+                try:
+                    Log("Content: " + str(metadata.content_rating))
+                except:
+                    Log("Content: -")
+                try:
+                    Log("Studio: " + str(metadata.studio))
+                except:
+                    Log("Studio: -")
+                try:
+                    Log("Premiere: " + str(metadata.originally_available_at))
+                except:
+                    Log("Premiere: -")
+                try:
+                    Log("Tagline: " + str(metadata.tagline))
+                except:
+                    Log("Tagline: -")
+                try:
+                    Log("Summary: " + str(metadata.summary))
+                except:
+                    Log("Summary: -")
                 Log("Writers:")
-                try: [Log("\t" + writer.name) for writer in metadata.writers]
-                except: Log("\t-")
+                try:
+                    [Log("\t" + writer.name) for writer in metadata.writers]
+                except:
+                    Log("\t-")
                 Log("Directors:")
-                try: [Log("\t" + director.name) for director in metadata.directors]
-                except: Log("\t-")
+                try:
+                    [Log("\t" + director.name) for director in metadata.directors]
+                except:
+                    Log("\t-")
                 Log("Genres:")
-                try: [Log("\t" + genre) for genre in metadata.genres]
-                except: Log("\t-")
+                try:
+                    [Log("\t" + genre) for genre in metadata.genres]
+                except:
+                    Log("\t-")
                 Log("Countries:")
-                try: [Log("\t" + country) for country in metadata.countries]
-                except: Log("\t-")
+                try:
+                    [Log("\t" + country) for country in metadata.countries]
+                except:
+                    Log("\t-")
                 Log("Collections:")
-                try: [Log("\t" + collection) for collection in metadata.collections]
-                except: Log("\t-")
-                try: Log("Duration: " + str(metadata.duration // 60000) + ' min')
-                except: Log("Duration: -")
+                try:
+                    [Log("\t" + collection) for collection in metadata.collections]
+                except:
+                    Log("\t-")
+                try:
+                    Log("Duration: " + str(metadata.duration // 60000) + ' min')
+                except:
+                    Log("Duration: -")
                 Log("Actors:")
-                try: [Log("\t" + actor.name + " > " + actor.role) for actor in metadata.roles]
-                except: [Log("\t" + actor.name) for actor in metadata.roles]
-                except: Log("\t-")
+                try:
+                    [Log("\t" + actor.name + " > " + actor.role) for actor in metadata.roles]
+                except:
+                    [Log("\t" + actor.name) for actor in metadata.roles]
+                except:
+                    Log("\t-")
                 Log("---------------------")
             else:
                 Log("ERROR: No <movie> tag in " + nfoFile + ". Aborting!")
