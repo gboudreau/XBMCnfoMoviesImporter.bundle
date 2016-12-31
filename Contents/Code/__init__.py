@@ -34,6 +34,17 @@ PERCENT_RATINGS = {
   'rottentomatoes', 'rotten tomatoes', 'rt', 'flixster'
 }
 
+VIDEO_FILE_BASE_REGEX = re.compile(
+    r'(?is)\s*\-\s*(cd|dvd|disc|disk|part|pt|d)\s*[0-9]$'
+)
+MOVIE_NAME_REGEX = re.compile(r' \(.*\)')
+UNESCAPE_REGEX = re.compile('&#?\w+;')
+NFO_TEXT_REGEX_1 = re.compile(r'&(?![A-Za-z]+[0-9]*;|#[0-9]+;|#x[0-9a-fA-F]+;)')
+NFO_TEXT_REGEX_2 = re.compile(r'^\s*<.*/>[\r\n]+', flags=re.MULTILINE)
+RATING_REGEX_1 = re.compile(
+    r'(?:Rated\s)?(?P<mpaa>[A-z0-9-+/.]+(?:\s[0-9]+[A-z]?)?)?'
+)
+RATING_REGEX_2 = re.compile(r'\s*\(.*?\)')
 
 class xbmcnfo(Agent.Movies):
     name = 'XBMCnfoMoviesImporter'
@@ -47,6 +58,7 @@ class xbmcnfo(Agent.Movies):
         'com.plexapp.agents.subzero'
     ]
 
+
 # ##### helper functions #####
     def DLog(self, LogMessage):
         if Prefs['debug']:
@@ -55,9 +67,9 @@ class xbmcnfo(Agent.Movies):
     def getRelatedFile(self, videoFile, fileExtension):
         videoFileExtension = videoFile.split(".")[-1]
         videoFileBase = videoFile.replace('.' + videoFileExtension, '')
-        videoFileBase = re.sub(r'(?is)\s*\-\s*(cd|dvd|disc|disk|part|pt|d)\s*[0-9]$', '', videoFileBase)
-        videoFileBase = re.sub(r'(?is)\s*\-\s*(cd|dvd|disc|disk|part|pt|d)\s*[a-d]$', '', videoFileBase)
-        return (videoFileBase + fileExtension)
+        videoFileBase = VIDEO_FILE_BASE_REGEX.sub('', videoFileBase)
+        videoFileBase = VIDEO_FILE_BASE_REGEX.sub('', videoFileBase)
+        return videoFileBase + fileExtension
 
     def getMovieNameFromFolder(self, folderpath, withYear):
         foldersplit = folderpath.split(os.sep)
@@ -69,9 +81,9 @@ class xbmcnfo(Agent.Movies):
             self.DLog("Moviename from folder (withYear): " + moviename)
         else:
             if foldersplit[-1] == 'VIDEO_TS':
-                moviename = os.sep.join(foldersplit[1:len(foldersplit)-1:]) + os.sep + re.sub(r' \(.*\)', r'', foldersplit[-2])
+                moviename = os.sep.join(foldersplit[1:len(foldersplit)-1:]) + os.sep + MOVIE_NAME_REGEX.sub('', foldersplit[-2])
             else:
-                moviename = os.sep.join(foldersplit) + os.sep + re.sub(r' \(.*\)', r'', foldersplit[-1])
+                moviename = os.sep.join(foldersplit) + os.sep + MOVIE_NAME_REGEX.sub('', foldersplit[-1])
             self.DLog("Moviename from folder: " + moviename)
         return moviename
 
@@ -121,7 +133,7 @@ class xbmcnfo(Agent.Movies):
                 except KeyError:
                     pass
             return text  # leave as is
-        return re.sub("&#?\w+;", fixup, text)
+        return UNESCAPE_REGEX.sub(fixup, text)
 
 # ##### search function #####
     def search(self, results, media, lang):
@@ -161,10 +173,10 @@ class xbmcnfo(Agent.Movies):
             nfoText = Core.storage.load(nfoFile)
             # work around failing XML parses for things with &'s in
             # them. This may need to go farther than just &'s....
-            nfoText = re.sub(r'&(?![A-Za-z]+[0-9]*;|#[0-9]+;|#x[0-9a-fA-F]+;)', r'&amp;', nfoText)
+            nfoText = NFO_TEXT_REGEX_1.sub('&amp;', nfoText)
             # remove empty xml tags from nfo
             self.DLog('Removing empty XML tags from movies nfo...')
-            nfoText = re.sub(r'^\s*<.*/>[\r\n]+', '', nfoText, flags=re.MULTILINE)
+            nfoText = NFO_TEXT_REGEX_2.sub('', nfoText)
 
             nfoTextLower = nfoText.lower()
             if nfoTextLower.count('<movie') > 0 and nfoTextLower.count('</movie>') > 0:
@@ -330,10 +342,10 @@ class xbmcnfo(Agent.Movies):
             nfoText = Core.storage.load(nfoFile)
             # work around failing XML parses for things with &'s in
             # them. This may need to go farther than just &'s....
-            nfoText = re.sub(r'&(?![A-Za-z]+[0-9]*;|#[0-9]+;|#x[0-9a-fA-F]+;)', r'&amp;', nfoText)
+            nfoText = NFO_TEXT_REGEX_1.sub(r'&amp;', nfoText)
             # remove empty xml tags from nfo
             self.DLog('Removing empty XML tags from movies nfo...')
-            nfoText = re.sub(r'^\s*<.*/>[\r\n]+', '', nfoText, flags=re.MULTILINE)
+            nfoText = NFO_TEXT_REGEX_2.sub('', nfoText)
 
             nfoTextLower = nfoText.lower()
             if nfoTextLower.count('<movie') > 0 and nfoTextLower.count('</movie>') > 0:
@@ -380,7 +392,7 @@ class xbmcnfo(Agent.Movies):
                 mpaa_rating = ''
                 try:
                     mpaatext = nfoXML.xpath('./mpaa')[0].text.strip()
-                    match = re.match(r'(?:Rated\s)?(?P<mpaa>[A-z0-9-+/.]+(?:\s[0-9]+[A-z]?)?)?', mpaatext)
+                    match = RATING_REGEX_1.match(mpaatext)
                     if match.group('mpaa'):
                         mpaa_rating = match.group('mpaa')
                         self.DLog('MPAA Rating: ' + mpaa_rating)
@@ -419,7 +431,9 @@ class xbmcnfo(Agent.Movies):
                 if metadata.content_rating == '' or metadata.content_rating == 'Not Rated':
                     metadata.content_rating = 'NR'
                 if '(' in metadata.content_rating:
-                    metadata.content_rating = re.sub(r'\s*\(.*?\)', '', metadata.content_rating)
+                    metadata.content_rating = RATING_REGEX_2.sub(
+                        '', metadata.content_rating
+                    )
 
                 # Studio
                 try:
