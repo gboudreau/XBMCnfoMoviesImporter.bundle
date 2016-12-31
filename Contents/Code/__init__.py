@@ -30,7 +30,7 @@ COUNTRY_CODES = {
 }
 
 PERCENT_RATINGS = {
-  'rottentomatoes','rotten tomatoes','rt','flixster'
+  'rottentomatoes', 'rotten tomatoes', 'rt', 'flixster'
 }
 
 
@@ -39,12 +39,17 @@ class xbmcnfo(Agent.Movies):
     ver = '1.1-52-g75074b5-158'
     primary_provider = True
     languages = [Locale.Language.NoLanguage]
-    accepts_from = ['com.plexapp.agents.localmedia','com.plexapp.agents.opensubtitles','com.plexapp.agents.podnapisi','com.plexapp.agents.subzero']
+    accepts_from = [
+        'com.plexapp.agents.localmedia',
+        'com.plexapp.agents.opensubtitles',
+        'com.plexapp.agents.podnapisi',
+        'com.plexapp.agents.subzero'
+    ]
 
 ##### helper functions #####
-    def DLog (self, LogMessage):
+    def DLog(self, LogMessage):
         if Prefs['debug']:
-            Log (LogMessage)
+            Log(LogMessage)
 
     def getRelatedFile(self, videoFile, fileExtension):
         videoFileExtension = videoFile.split(".")[-1]
@@ -54,7 +59,7 @@ class xbmcnfo(Agent.Movies):
         return (videoFileBase + fileExtension)
 
     def getMovieNameFromFolder(self, folderpath, withYear):
-        foldersplit = folderpath.split (os.sep)
+        foldersplit = folderpath.split(os.sep)
         if withYear == True:
             if foldersplit[-1] == 'VIDEO_TS':
                 moviename = os.sep.join(foldersplit[1:len(foldersplit)-1:]) + os.sep + foldersplit[-2]
@@ -63,9 +68,9 @@ class xbmcnfo(Agent.Movies):
             self.DLog("Moviename from folder (withYear): " + moviename)
         else:
             if foldersplit[-1] == 'VIDEO_TS':
-                moviename = os.sep.join(foldersplit[1:len(foldersplit)-1:]) + os.sep + re.sub (r' \(.*\)',r'',foldersplit[-2])
+                moviename = os.sep.join(foldersplit[1:len(foldersplit)-1:]) + os.sep + re.sub(r' \(.*\)', r'', foldersplit[-2])
             else:
-                moviename = os.sep.join(foldersplit) + os.sep + re.sub (r' \(.*\)',r'',foldersplit[-1])
+                moviename = os.sep.join(foldersplit) + os.sep + re.sub(r' \(.*\)', r'', foldersplit[-1])
             self.DLog("Moviename from folder: " + moviename)
         return moviename
 
@@ -121,7 +126,7 @@ class xbmcnfo(Agent.Movies):
         self.DLog("++++++++++++++++++++++++")
         self.DLog("Entering search function")
         self.DLog("++++++++++++++++++++++++")
-        Log ("" + self.name + " Version: " + self.ver)
+        Log("" + self.name + " Version: " + self.ver)
 
         path1 = media.items[0].parts[0].file
         self.DLog('media file: ' + path1)
@@ -129,25 +134,25 @@ class xbmcnfo(Agent.Movies):
         self.DLog('folderpath: ' + folderpath)
 
         # Moviename with year from folder
-        movienamewithyear = self.getMovieNameFromFolder (folderpath, True)
+        movienamewithyear = self.getMovieNameFromFolder(folderpath, True)
         # Moviename from folder
-        moviename = self.getMovieNameFromFolder (folderpath, False)
+        moviename = self.getMovieNameFromFolder(folderpath, False)
 
         nfoNames = []
         # Eden / Frodo
-        nfoNames.append (self.getRelatedFile(path1, '.nfo'))
-        nfoNames.append (movienamewithyear + '.nfo')
-        nfoNames.append (moviename + '.nfo')
+        nfoNames.append(self.getRelatedFile(path1, '.nfo'))
+        nfoNames.append(movienamewithyear + '.nfo')
+        nfoNames.append(moviename + '.nfo')
         # VIDEO_TS
-        nfoNames.append (os.path.join(folderpath, 'video_ts.nfo'))
+        nfoNames.append(os.path.join(folderpath, 'video_ts.nfo'))
         # movie.nfo (e.g. FilmInfo!Organizer users)
-        nfoNames.append (os.path.join(folderpath, 'movie.nfo'))
+        nfoNames.append(os.path.join(folderpath, 'movie.nfo'))
         # last resort - use first found .nfo
         nfoFiles = [f for f in os.listdir(folderpath) if f.endswith('.nfo')]
-        if nfoFiles: nfoNames.append (os.path.join(folderpath, nfoFiles[0]))
+        if nfoFiles: nfoNames.append(os.path.join(folderpath, nfoFiles[0]))
 
         # check possible .nfo file locations
-        nfoFile = self.checkFilePaths (nfoNames, '.nfo')
+        nfoFile = self.checkFilePaths(nfoNames, '.nfo')
 
         if nfoFile:
             nfoText = Core.storage.load(nfoFile)
@@ -156,7 +161,7 @@ class xbmcnfo(Agent.Movies):
             nfoText = re.sub(r'&(?![A-Za-z]+[0-9]*;|#[0-9]+;|#x[0-9a-fA-F]+;)', r'&amp;', nfoText)
             # remove empty xml tags from nfo
             self.DLog('Removing empty XML tags from movies nfo...')
-            nfoText = re.sub(r'^\s*<.*/>[\r\n]+', '', nfoText, flags = re.MULTILINE)
+            nfoText = re.sub(r'^\s*<.*/>[\r\n]+', '', nfoText, flags=re.MULTILINE)
 
             nfoTextLower = nfoText.lower()
             if nfoTextLower.count('<movie') > 0 and nfoTextLower.count('</movie>') > 0:
@@ -182,13 +187,13 @@ class xbmcnfo(Agent.Movies):
                 # Year
                 try:
                     media.year = int(nfoXML.xpath('year')[0].text.strip())
-                    self.DLog ("Reading year tag: " + str(media.year))
+                    self.DLog("Reading year tag: " + str(media.year))
                 except: pass
                 # ID
                 try:
                     id = nfoXML.xpath('id')[0].text.strip()
                 except:
-                    id=""
+                    id = ""
                     pass
                 if len(id) > 2:
                         media.id = id
@@ -196,7 +201,7 @@ class xbmcnfo(Agent.Movies):
                 else:
                     # if movie id doesn't exist, create
                     # one based on hash of title and year
-                    ord3 = lambda x : '%.3d' % ord(x)
+                    ord3 = lambda x: '%.3d' % ord(x)
                     id = int(''.join(map(ord3, media.name+str(media.year))))
                     id = str(abs(hash(int(id))))
                     media.id = id
@@ -213,7 +218,7 @@ class xbmcnfo(Agent.Movies):
         self.DLog("++++++++++++++++++++++++")
         self.DLog("Entering update function")
         self.DLog("++++++++++++++++++++++++")
-        Log ("" + self.name + " Version: " + self.ver)
+        Log("" + self.name + " Version: " + self.ver)
 
         path1 = media.items[0].parts[0].file
         self.DLog('media file: ' + path1)
@@ -223,36 +228,36 @@ class xbmcnfo(Agent.Movies):
         if isDVD: folderpathDVD = os.path.dirname(folderpath)
 
         # Moviename with year from folder
-        movienamewithyear = self.getMovieNameFromFolder (folderpath, True)
+        movienamewithyear = self.getMovieNameFromFolder(folderpath, True)
         # Moviename from folder
-        moviename = self.getMovieNameFromFolder (folderpath, False)
+        moviename = self.getMovieNameFromFolder(folderpath, False)
 
         if not Prefs['localmediaagent']:
             posterData = None
             posterFilename = ""
             posterNames = []
             # Frodo
-            posterNames.append (self.getRelatedFile(path1, '-poster.jpg'))
-            posterNames.append (movienamewithyear + '-poster.jpg')
-            posterNames.append (moviename + '-poster.jpg')
-            posterNames.append (os.path.join(folderpath, 'poster.jpg'))
-            if isDVD: posterNames.append (os.path.join(folderpathDVD, 'poster.jpg'))
+            posterNames.append(self.getRelatedFile(path1, '-poster.jpg'))
+            posterNames.append(movienamewithyear + '-poster.jpg')
+            posterNames.append(moviename + '-poster.jpg')
+            posterNames.append(os.path.join(folderpath, 'poster.jpg'))
+            if isDVD: posterNames.append(os.path.join(folderpathDVD, 'poster.jpg'))
             # Eden
-            posterNames.append (self.getRelatedFile(path1, '.tbn'))
-            posterNames.append (folderpath + "/folder.jpg")
-            if isDVD: posterNames.append (os.path.join(folderpathDVD, 'folder.jpg'))
+            posterNames.append(self.getRelatedFile(path1, '.tbn'))
+            posterNames.append(folderpath + "/folder.jpg")
+            if isDVD: posterNames.append(os.path.join(folderpathDVD, 'folder.jpg'))
             # DLNA
-            posterNames.append (self.getRelatedFile(path1, '.jpg'))
+            posterNames.append(self.getRelatedFile(path1, '.jpg'))
             # Others
-            posterNames.append (folderpath + "/cover.jpg")
-            if isDVD: posterNames.append (os.path.join(folderpathDVD, 'cover.jpg'))
-            posterNames.append (folderpath + "/default.jpg")
-            if isDVD: posterNames.append (os.path.join(folderpathDVD, 'default.jpg'))
-            posterNames.append (folderpath + "/movie.jpg")
-            if isDVD: posterNames.append (os.path.join(folderpathDVD, 'movie.jpg'))
+            posterNames.append(folderpath + "/cover.jpg")
+            if isDVD: posterNames.append(os.path.join(folderpathDVD, 'cover.jpg'))
+            posterNames.append(folderpath + "/default.jpg")
+            if isDVD: posterNames.append(os.path.join(folderpathDVD, 'default.jpg'))
+            posterNames.append(folderpath + "/movie.jpg")
+            if isDVD: posterNames.append(os.path.join(folderpathDVD, 'movie.jpg'))
 
             # check possible poster file locations
-            posterFilename = self.checkFilePaths (posterNames, 'poster')
+            posterFilename = self.checkFilePaths(posterNames, 'poster')
 
             if posterFilename:
                 posterData = Core.storage.load(posterFilename)
@@ -263,21 +268,21 @@ class xbmcnfo(Agent.Movies):
             fanartFilename = ""
             fanartNames = []
             # Eden / Frodo
-            fanartNames.append (self.getRelatedFile(path1, '-fanart.jpg'))
-            fanartNames.append (movienamewithyear + '-fanart.jpg')
-            fanartNames.append (moviename + '-fanart.jpg')
-            fanartNames.append (os.path.join(folderpath, 'fanart.jpg'))
-            if isDVD: fanartNames.append (os.path.join(folderpathDVD, 'fanart.jpg'))
+            fanartNames.append(self.getRelatedFile(path1, '-fanart.jpg'))
+            fanartNames.append(movienamewithyear + '-fanart.jpg')
+            fanartNames.append(moviename + '-fanart.jpg')
+            fanartNames.append(os.path.join(folderpath, 'fanart.jpg'))
+            if isDVD: fanartNames.append(os.path.join(folderpathDVD, 'fanart.jpg'))
             # Others
-            fanartNames.append (os.path.join(folderpath, 'art.jpg'))
-            if isDVD: fanartNames.append (os.path.join(folderpathDVD, 'art.jpg'))
-            fanartNames.append (os.path.join(folderpath, 'backdrop.jpg'))
-            if isDVD: fanartNames.append (os.path.join(folderpathDVD, 'backdrop.jpg'))
-            fanartNames.append (os.path.join(folderpath, 'background.jpg'))
-            if isDVD: fanartNames.append (os.path.join(folderpathDVD, 'background.jpg'))
+            fanartNames.append(os.path.join(folderpath, 'art.jpg'))
+            if isDVD: fanartNames.append(os.path.join(folderpathDVD, 'art.jpg'))
+            fanartNames.append(os.path.join(folderpath, 'backdrop.jpg'))
+            if isDVD: fanartNames.append(os.path.join(folderpathDVD, 'backdrop.jpg'))
+            fanartNames.append(os.path.join(folderpath, 'background.jpg'))
+            if isDVD: fanartNames.append(os.path.join(folderpathDVD, 'background.jpg'))
 
             # check possible fanart file locations
-            fanartFilename = self.checkFilePaths (fanartNames, 'fanart')
+            fanartFilename = self.checkFilePaths(fanartNames, 'fanart')
 
             if fanartFilename:
                 fanartData = Core.storage.load(fanartFilename)
@@ -286,19 +291,19 @@ class xbmcnfo(Agent.Movies):
 
         nfoNames = []
         # Eden / Frodo
-        nfoNames.append (self.getRelatedFile(path1, '.nfo'))
-        nfoNames.append (movienamewithyear + '.nfo')
-        nfoNames.append (moviename + '.nfo')
+        nfoNames.append(self.getRelatedFile(path1, '.nfo'))
+        nfoNames.append(movienamewithyear + '.nfo')
+        nfoNames.append(moviename + '.nfo')
         # VIDEO_TS
-        nfoNames.append (os.path.join(folderpath, 'video_ts.nfo'))
+        nfoNames.append(os.path.join(folderpath, 'video_ts.nfo'))
         # movie.nfo (e.g. FilmInfo!Organizer users)
-        nfoNames.append (os.path.join(folderpath, 'movie.nfo'))
+        nfoNames.append(os.path.join(folderpath, 'movie.nfo'))
         # last resort - use first found .nfo
         nfoFiles = [f for f in os.listdir(folderpath) if f.endswith('.nfo')]
-        if nfoFiles: nfoNames.append (os.path.join(folderpath, nfoFiles[0]))
+        if nfoFiles: nfoNames.append(os.path.join(folderpath, nfoFiles[0]))
 
         # check possible .nfo file locations
-        nfoFile = self.checkFilePaths (nfoNames, '.nfo')
+        nfoFile = self.checkFilePaths(nfoNames, '.nfo')
 
         if nfoFile:
             nfoText = Core.storage.load(nfoFile)
@@ -307,7 +312,7 @@ class xbmcnfo(Agent.Movies):
             nfoText = re.sub(r'&(?![A-Za-z]+[0-9]*;|#[0-9]+;|#x[0-9a-fA-F]+;)', r'&amp;', nfoText)
             # remove empty xml tags from nfo
             self.DLog('Removing empty XML tags from movies nfo...')
-            nfoText = re.sub(r'^\s*<.*/>[\r\n]+', '', nfoText, flags = re.MULTILINE)
+            nfoText = re.sub(r'^\s*<.*/>[\r\n]+', '', nfoText, flags=re.MULTILINE)
 
             nfoTextLower = nfoText.lower()
             if nfoTextLower.count('<movie') > 0 and nfoTextLower.count('</movie>') > 0:
@@ -337,7 +342,7 @@ class xbmcnfo(Agent.Movies):
                 # Year
                 try:
                     metadata.year = int(nfoXML.xpath('year')[0].text.strip())
-                    self.DLog ("Set year tag: " + str(metadata.year))
+                    self.DLog("Set year tag: " + str(metadata.year))
                 except: pass
                 # Original Title
                 try: metadata.original_title = nfoXML.xpath('originaltitle')[0].text.strip()
@@ -364,7 +369,7 @@ class xbmcnfo(Agent.Movies):
                                 if country[1] == "X": country[1] = "X18"
                             if country[0] == "DE":
                                 country[0] = "Germany"
-                            content_rating[country[0]]=country[1].strip('+').replace('FSK','').replace('ab ','').strip()
+                            content_rating[country[0]] = country[1].strip('+').replace('FSK', '').replace('ab ', '').strip()
                     self.DLog('Content Rating(s): ' + str(content_rating))
                 except: pass
                 if Prefs['country'] != '':
@@ -424,7 +429,7 @@ class xbmcnfo(Agent.Movies):
                             self.DLog("Set premiere to: " + dt.strftime('%Y-%m-%d'))
                             if not metadata.year:
                                 metadata.year = int(dt.strftime('%Y'))
-                                self.DLog ("Set year tag from premiere: " + str(metadata.year))
+                                self.DLog("Set year tag from premiere: " + str(metadata.year))
                         except:
                             self.DLog("Couldn't parse premiere: " + air_string)
                             pass
@@ -452,12 +457,12 @@ class xbmcnfo(Agent.Movies):
                         stype2 = 'outline'
                     else:
                         self.DLog("Default setting forces outline before plot...")
-                        stype1 ='outline'
+                        stype1 = 'outline'
                         stype2 = 'plot'
                     try:
                         summary = nfoXML.xpath(stype1)[0].text.strip('| \t\r\n')
                         if not summary:
-                            self.DLog("No or empty " + stype1 + " tag. Fallback to " + stype2 +"...")
+                            self.DLog("No or empty " + stype1 + " tag. Fallback to " + stype2 + "...")
                             raise
                     except:
                         summary = nfoXML.xpath(stype2)[0].text.strip('| \t\r\n')
@@ -469,7 +474,7 @@ class xbmcnfo(Agent.Movies):
                 # Ratings
                 try:
                     nforating = None
-                    nforating = round(float(nfoXML.xpath("rating")[0].text.replace(',', '.')),1)
+                    nforating = round(float(nfoXML.xpath("rating")[0].text.replace(',', '.')), 1)
                     self.DLog("Series Rating found: " + str(nforating))
                 except:
                     pass
@@ -477,8 +482,8 @@ class xbmcnfo(Agent.Movies):
                     self.DLog("Reading old rating style failed. Trying new Krypton style.")
                     for ratings in nfoXML.xpath('ratings'):
                         try:
-                            rating=ratings.xpath("rating")[0]
-                            nforating = round(float(rating.xpath("value")[0].text.replace(',', '.')),1)
+                            rating = ratings.xpath("rating")[0]
+                            nforating = round(float(rating.xpath("value")[0].text.replace(',', '.')), 1)
                             self.DLog("Krypton style series rating found: " + str(nforating))
                         except:
                             self.DLog("Can't read rating from tvshow.nfo.")
@@ -504,7 +509,7 @@ class xbmcnfo(Agent.Movies):
                                     pass
                                     self.DLog("Skipping additional rating without moviedb attribute!")
                                     continue
-                                ratingvalue = str(addrating.text.replace (',','.'))
+                                ratingvalue = str(addrating.text.replace(',', '.'))
                                 if ratingprovider.lower() in PERCENT_RATINGS:
                                     ratingvalue = ratingvalue + "%"
                                 if ratingprovider in allowedratings or allowedratings == "":
@@ -567,7 +572,7 @@ class xbmcnfo(Agent.Movies):
                 except: pass
                 # Duration
                 try:
-                    self.DLog ("Trying to read <durationinseconds> tag from .nfo file...")
+                    self.DLog("Trying to read <durationinseconds> tag from .nfo file...")
                     fileinfoXML = XML.ElementFromString(nfoText).xpath('fileinfo')[0]
                     streamdetailsXML = fileinfoXML.xpath('streamdetails')[0]
                     videoXML = streamdetailsXML.xpath('video')[0]
@@ -575,7 +580,7 @@ class xbmcnfo(Agent.Movies):
                     metadata.duration = int(re.compile('^([0-9]+)').findall(runtime)[0]) * 1000 # s
                 except:
                     try:
-                        self.DLog ("Fallback to <runtime> tag from .nfo file...")
+                        self.DLog("Fallback to <runtime> tag from .nfo file...")
                         runtime = nfoXML.xpath("runtime")[0].text.strip()
                         metadata.duration = int(re.compile('^([0-9]+)').findall(runtime)[0]) * 60 * 1000 # ms
                     except:
@@ -615,7 +620,7 @@ class xbmcnfo(Agent.Movies):
                                 title = ""
                                 if fn.endswith('-trailer'):
                                         title = ' '.join(fn.split('-')[:-1])
-                                if fn == "trailer" or f.startswith ('movie-trailer'):
+                                if fn == "trailer" or f.startswith('movie-trailer'):
                                         title = metadata.title
                                 if title != "":
                                     metadata.extras.add(TrailerObject(title=title, file=os.path.join(folderpath, f)))
@@ -623,6 +628,7 @@ class xbmcnfo(Agent.Movies):
                                     self.DLog("Trailer title:" + title)
                             except:
                                 self.DLog("Exception adding trailer file!")
+
 
                 Log("---------------------")
                 Log("Movie nfo Information")
