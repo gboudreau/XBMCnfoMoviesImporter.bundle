@@ -61,7 +61,7 @@ class xbmcnfo(Agent.Movies):
 
     def getMovieNameFromFolder(self, folderpath, withYear):
         foldersplit = folderpath.split(os.sep)
-        if withYear == True:
+        if withYear:
             if foldersplit[-1] == 'VIDEO_TS':
                 moviename = os.sep.join(foldersplit[1:len(foldersplit)-1:]) + os.sep + foldersplit[-2]
             else:
