@@ -208,7 +208,8 @@ class xbmcnfo(Agent.Movies):
                 else:
                     # if movie id doesn't exist, create
                     # one based on hash of title and year
-                    ord3 = lambda x: '%.3d' % ord(x)
+                    def ord3(x):
+                        return '%.3d' % ord(x)
                     id = int(''.join(map(ord3, media.name+str(media.year))))
                     id = str(abs(hash(int(id))))
                     media.id = id
