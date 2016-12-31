@@ -33,6 +33,7 @@ PERCENT_RATINGS = {
   'rottentomatoes','rotten tomatoes','rt','flixster'
 }
 
+
 class xbmcnfo(Agent.Movies):
     name = 'XBMCnfoMoviesImporter'
     ver = '1.1-52-g75074b5-158'
@@ -622,7 +623,6 @@ class xbmcnfo(Agent.Movies):
                                     self.DLog("Trailer title:" + title)
                             except:
                                 self.DLog("Exception adding trailer file!")
-
 
                 Log("---------------------")
                 Log("Movie nfo Information")
