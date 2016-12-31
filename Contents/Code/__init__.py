@@ -46,7 +46,7 @@ class xbmcnfo(Agent.Movies):
         'com.plexapp.agents.subzero'
     ]
 
-##### helper functions #####
+# ##### helper functions #####
     def DLog(self, LogMessage):
         if Prefs['debug']:
             Log(LogMessage)
@@ -90,7 +90,7 @@ class xbmcnfo(Agent.Movies):
             if len(xmltag):
                 continue
             if not (xmltag.text and xmltag.text.strip()):
-                #self.DLog("Removing empty XMLTag: " + xmltag.tag)
+                # self.DLog("Removing empty XMLTag: " + xmltag.tag)
                 xmltag.getparent().remove(xmltag)
         return xmltags
 
@@ -118,10 +118,10 @@ class xbmcnfo(Agent.Movies):
                     text = unichr(htmlentitydefs.name2codepoint[text[1:-1]])
                 except KeyError:
                     pass
-            return text # leave as is
+            return text  # leave as is
         return re.sub("&#?\w+;", fixup, text)
 
-##### search function #####
+# ##### search function #####
     def search(self, results, media, lang):
         self.DLog("++++++++++++++++++++++++")
         self.DLog("Entering search function")
@@ -220,7 +220,7 @@ class xbmcnfo(Agent.Movies):
             else:
                 Log("ERROR: No <movie> tag in " + nfoFile + ". Aborting!")
 
-##### update Function #####
+# ##### update Function #####
     def update(self, metadata, media, lang):
         self.DLog("++++++++++++++++++++++++")
         self.DLog("Entering update function")
@@ -344,7 +344,7 @@ class xbmcnfo(Agent.Movies):
                     self.DLog('ERROR: Cant parse XML in ' + nfoFile + '. Aborting!')
                     return
 
-                #remove empty xml tags
+                # remove empty xml tags
                 self.DLog('Removing empty XML tags from movies nfo...')
                 nfoXML = self.RemoveEmptyTags(nfoXML)
 
@@ -617,12 +617,12 @@ class xbmcnfo(Agent.Movies):
                     streamdetailsXML = fileinfoXML.xpath('streamdetails')[0]
                     videoXML = streamdetailsXML.xpath('video')[0]
                     runtime = videoXML.xpath("durationinseconds")[0].text.strip()
-                    metadata.duration = int(re.compile('^([0-9]+)').findall(runtime)[0]) * 1000 # s
+                    metadata.duration = int(re.compile('^([0-9]+)').findall(runtime)[0]) * 1000  # s
                 except:
                     try:
                         self.DLog("Fallback to <runtime> tag from .nfo file...")
                         runtime = nfoXML.xpath("runtime")[0].text.strip()
-                        metadata.duration = int(re.compile('^([0-9]+)').findall(runtime)[0]) * 60 * 1000 # ms
+                        metadata.duration = int(re.compile('^([0-9]+)').findall(runtime)[0]) * 60 * 1000  # ms
                     except:
                         self.DLog("No Duration in .nfo file.")
                         pass
@@ -645,12 +645,12 @@ class xbmcnfo(Agent.Movies):
 
                 if not Prefs['localmediaagent']:
                     # Remote posters and fanarts are disabled for now; having them seems to stop the local artworks from being used.
-                    #(remote) posters
-                    #(local) poster
+                    # (remote) posters
+                    # (local) poster
                     if posterData:
                         metadata.posters[posterFilename] = Proxy.Media(posterData)
-                    #(remote) fanart
-                    #(local) fanart
+                    # (remote) fanart
+                    # (local) fanart
                     if fanartData:
                         metadata.art[fanartFilename] = Proxy.Media(fanartData)
 
