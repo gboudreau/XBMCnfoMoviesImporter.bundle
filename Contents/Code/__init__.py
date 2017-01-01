@@ -101,18 +101,6 @@ class XBMCNFO(Agent.Movies):
     ]
 
 # ##### helper functions #####
-    def check_file_paths(self, path_fns, f_type):
-        for path_fn in path_fns:
-            log.debug('Trying {name}'.format(name=path_fn))
-            if not os.path.exists(path_fn):
-                continue
-            else:
-                log.info('Found {type} file {name}'.format(
-                    type=f_type, name=path_fn))
-                return path_fn
-        else:
-            log.info('No {type} file found! Aborting!'.format(type=f_type))
-
     def remove_empty_tags(self, xml_tags):
         for xml_tag in xml_tags.iter('*'):
             if len(xml_tag):
@@ -182,7 +170,7 @@ class XBMCNFO(Agent.Movies):
             nfo_names.append(os.path.join(folder_path, nfo_files[0]))
 
         # check possible .nfo file locations
-        nfo_file = self.check_file_paths(nfo_names, '.nfo')
+        nfo_file = check_file_paths(nfo_names, '.nfo')
 
         if nfo_file:
             nfo_text = Core.storage.load(nfo_file)
@@ -312,7 +300,7 @@ class XBMCNFO(Agent.Movies):
                 poster_names.append(os.path.join(folder_path_dvd, 'movie.jpg'))
 
             # check possible poster file locations
-            poster_filename = self.check_file_paths(poster_names, 'poster')
+            poster_filename = check_file_paths(poster_names, 'poster')
 
             if poster_filename:
                 poster_data = Core.storage.load(poster_filename)
@@ -341,7 +329,7 @@ class XBMCNFO(Agent.Movies):
                 fanart_names.append(os.path.join(folder_path_dvd, 'background.jpg'))
 
             # check possible fanart file locations
-            fanart_filename = self.check_file_paths(fanart_names, 'fanart')
+            fanart_filename = check_file_paths(fanart_names, 'fanart')
 
             if fanart_filename:
                 fanart_data = Core.storage.load(fanart_filename)
@@ -363,7 +351,7 @@ class XBMCNFO(Agent.Movies):
             nfo_names.append(os.path.join(folder_path, nfo_files[0]))
 
         # check possible .nfo file locations
-        nfo_file = self.check_file_paths(nfo_names, '.nfo')
+        nfo_file = check_file_paths(nfo_names, '.nfo')
 
         if nfo_file:
             nfo_text = Core.storage.load(nfo_file)
@@ -901,3 +889,25 @@ def get_movie_name_from_folder(folder_path, with_year):
         name=movie_name,
     ))
     return movie_name
+
+
+def check_file_paths(file_names, file_type=None):
+    """
+    CHeck a list of file names and return the first one found.
+
+    :param file_names: An iterable of file names to check
+    :param file_type: (Optional) Type of file searched for. Used for logging.
+    :return: a valid filename or None
+    """
+    for filename in file_names:
+        log.debug('Trying {name}'.format(name=filename))
+        if os.path.exists(filename):
+            log.info('Found {type} file {name}'.format(
+                type=file_type if file_type else 'a',
+                name=filename,
+            ))
+            return filename
+    else:
+        log.info('No {type} file found! Aborting!'.format(
+            type=file_type if file_type else 'valid'
+        ))
