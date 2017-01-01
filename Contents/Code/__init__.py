@@ -52,7 +52,6 @@ RATING_REGEX_1 = re.compile(
 RATING_REGEX_2 = re.compile(r'\s*\(.*?\)')
 
 
-
 class PlexLogAdapter(object):
     """
     Adapts Plex Log class to standard python logging style.
@@ -84,6 +83,11 @@ log = XBMCLogAdapter
 
 
 class XBMCNFO(Agent.Movies):
+    """
+    A Plex Metadata Agent for Movies.
+
+    Uses XBMC nfo files as the metadata source for Plex Movies.
+    """
     name = 'XBMCnfoMoviesImporter'
     ver = '1.1-52-g75074b5-158'
     primary_provider = True
@@ -281,6 +285,7 @@ class XBMCNFO(Agent.Movies):
                     nfo=nfo_file))
 
 # ##### update Function #####
+
     def update(self, metadata, media, lang):
         log.debug('++++++++++++++++++++++++')
         log.debug('Entering update function')
