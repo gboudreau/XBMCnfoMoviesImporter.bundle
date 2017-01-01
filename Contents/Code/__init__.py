@@ -37,7 +37,6 @@ PERCENT_RATINGS = {
     'flixster',
 }
 
-MOVIE_NAME_REGEX = re.compile(r' \(.*\)')
 UNESCAPE_REGEX = re.compile('&#?\w+;')
 NFO_TEXT_REGEX_1 = re.compile(
     r'&(?![A-Za-z]+[0-9]*;|#[0-9]+;|#x[0-9a-fA-F]+;)'
@@ -97,24 +96,6 @@ class XBMCNFO(Agent.Movies):
     ]
 
 # ##### helper functions #####
-
-    def get_movie_name_from_folder(self, folder_path, with_year):
-        folder_split = folder_path.split(os.sep)
-        if with_year:
-            if folder_split[-1] == 'VIDEO_TS':
-                movie_name = os.sep.join(folder_split[1:len(folder_split)-1:]) + os.sep + folder_split[-2]
-            else:
-                movie_name = os.sep.join(folder_split) + os.sep + folder_split[-1]
-            log.debug('Movie name from folder (with year): {name}'.format(
-                name=movie_name))
-        else:
-            if folder_split[-1] == 'VIDEO_TS':
-                movie_name = os.sep.join(folder_split[1:len(folder_split)-1:]) + os.sep + MOVIE_NAME_REGEX.sub('', folder_split[-2])
-            else:
-                movie_name = os.sep.join(folder_split) + os.sep + MOVIE_NAME_REGEX.sub('', folder_split[-1])
-            log.debug('Movie name from folder: {name}'.format(name=movie_name))
-        return movie_name
-
     def check_file_paths(self, path_fns, f_type):
         for path_fn in path_fns:
             log.debug('Trying {name}'.format(name=path_fn))
@@ -177,9 +158,9 @@ class XBMCNFO(Agent.Movies):
         log.debug('folder path: {name}'.format(name=folder_path))
 
         # Movie name with year from folder
-        movie_name_with_year = self.get_movie_name_from_folder(folder_path, True)
+        movie_name_with_year = get_movie_name_from_folder(folder_path, True)
         # Movie name from folder
-        movie_name = self.get_movie_name_from_folder(folder_path, False)
+        movie_name = get_movie_name_from_folder(folder_path, False)
 
         nfo_names = []
         # Eden / Frodo
@@ -292,9 +273,9 @@ class XBMCNFO(Agent.Movies):
             folder_path_dvd = os.path.dirname(folder_path)
 
         # Movie name with year from folder
-        movie_name_with_year = self.get_movie_name_from_folder(folder_path, True)
+        movie_name_with_year = get_movie_name_from_folder(folder_path, True)
         # Movie name from folder
-        movie_name = self.get_movie_name_from_folder(folder_path, False)
+        movie_name = get_movie_name_from_folder(folder_path, False)
 
         if not Prefs['localmediaagent']:
             poster_data = None
@@ -720,7 +701,8 @@ class XBMCNFO(Agent.Movies):
                         pass
 
                 if not Prefs['localmediaagent']:
-                    # Remote posters and fanarts are disabled for now; having them seems to stop the local artworks from being used.
+                    # Remote posters and fanarts are disabled for now; having
+                    # them seems to stop the local artworks from being used.
                     # (remote) posters
                     # (local) poster
                     if poster_data:
@@ -844,7 +826,8 @@ class XBMCNFO(Agent.Movies):
 xbmcnfo = XBMCNFO
 
 
-# Helper Functions
+# -- HELPER FUNCTIONS --------------------------------------------------------
+
 VIDEO_FILE_BASE_REGEX = re.compile(
     r'(?is)\s*-\s*(cd|dvd|disc|disk|part|pt|d)\s*[0-9]$'
 )
@@ -879,3 +862,37 @@ def get_related_file(video_file, file_extension):
     :return: a filename for a related file
     """
     return get_base_file(video_file) + file_extension
+
+
+MOVIE_NAME_REGEX = re.compile(r' \(.*\)')
+
+
+def get_movie_name_from_folder(folder_path, with_year):
+    """
+    Get the name of the movie from the folder.
+
+    :param folder_path:
+    :param with_year:
+    :return:
+    """
+    # Split the folder into a list of paths
+    folder_split = os.path.normpath(folder_path).split(os.sep)
+
+    if folder_split[-1] == 'VIDEO_TS':  # If the folder is from a DVD
+        # Strip the VIDEO_TS folder
+        base = os.path.join(*folder_split[1:len(folder_split) - 1])
+        name = folder_split[-2]
+    else:
+        base = os.path.join(*folder_split)
+        name = folder_split[-1]
+
+    if with_year:  # then apply the MOVIE_NAME_REGEX to strip year information
+        name = MOVIE_NAME_REGEX.sub('', name)
+
+    # Append the Movie name from folder to the end of the path
+    movie_name = os.path.join(base, name)
+    log.debug('Movie name from folder{with_year}: {name}'.format(
+        with_year=' (with year)' if with_year else '',
+        name=movie_name,
+    ))
+    return movie_name
