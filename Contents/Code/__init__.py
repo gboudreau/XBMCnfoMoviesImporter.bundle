@@ -51,6 +51,38 @@ RATING_REGEX_1 = re.compile(
 )
 RATING_REGEX_2 = re.compile(r'\s*\(.*?\)')
 
+
+
+class PlexLogAdapter(object):
+    """
+    Adapts Plex Log class to standard python logging style.
+
+    This is a very simple remap of methods and does not provide
+    full python standard logging functionality.
+    """
+    debug = Log.Debug
+    info = Log.Info
+    warn = Log.Warn
+    error = Log.Error
+    critical = Log.Critical
+    exception = Log.Exception
+
+
+class XBMCLogAdapter(PlexLogAdapter):
+    """
+    Plex Log adapter that only emits debug statements based on preferences.
+    """
+    @staticmethod
+    def debug(*args, **kwargs):
+        """
+        Selective logging of debug message based on preference.
+        """
+        if Prefs['debug']:
+            Log.Debug(*args, **kwargs)
+
+log = XBMCLogAdapter
+
+
 class XBMCNFO(Agent.Movies):
     name = 'XBMCnfoMoviesImporter'
     ver = '1.1-52-g75074b5-158'
@@ -65,10 +97,6 @@ class XBMCNFO(Agent.Movies):
 
 
 # ##### helper functions #####
-    def debug_log(self, log_message):
-        if Prefs['debug']:
-            Log.Debug(log_message)
-
     def get_related_file(self, video_file, file_extension):
         video_file_extension = video_file.split('.')[-1]
         video_file_base = video_file.replace('.' + video_file_extension, '')
@@ -83,35 +111,34 @@ class XBMCNFO(Agent.Movies):
                 movie_name = os.sep.join(folder_split[1:len(folder_split)-1:]) + os.sep + folder_split[-2]
             else:
                 movie_name = os.sep.join(folder_split) + os.sep + folder_split[-1]
-            self.debug_log('Movie name from folder'
-                           ' (with year): {name}'.format(name=movie_name))
+            log.debug('Movie name from folder (with year): {name}'.format(
+                name=movie_name))
         else:
             if folder_split[-1] == 'VIDEO_TS':
                 movie_name = os.sep.join(folder_split[1:len(folder_split)-1:]) + os.sep + MOVIE_NAME_REGEX.sub('', folder_split[-2])
             else:
                 movie_name = os.sep.join(folder_split) + os.sep + MOVIE_NAME_REGEX.sub('', folder_split[-1])
-            self.debug_log('Movie name from folder:'
-                           ' {name}'.format(name=movie_name))
+            log.debug('Movie name from folder: {name}'.format(name=movie_name))
         return movie_name
 
     def check_file_paths(self, path_fns, f_type):
         for path_fn in path_fns:
-            self.debug_log('Trying {name}'.format(name=path_fn))
+            log.debug('Trying {name}'.format(name=path_fn))
             if not os.path.exists(path_fn):
                 continue
             else:
-                Log('Found {type} file {name}'.format(type=f_type, 
-                                                      name=path_fn))
+                log.info('Found {type} file {name}'.format(
+                    type=f_type, name=path_fn))
                 return path_fn
         else:
-            Log('No {type} file found! Aborting!'.format(type=f_type))
+            log.info('No {type} file found! Aborting!'.format(type=f_type))
 
     def remove_empty_tags(self, xml_tags):
         for xml_tag in xml_tags.iter('*'):
             if len(xml_tag):
                 continue
             if not (xml_tag.text and xml_tag.text.strip()):
-                # self.debug_log('Removing empty XMLTag: ' + xmltag.tag)
+                # log.debug('Removing empty XMLTag: ' + xmltag.tag)
                 xml_tag.getparent().remove(xml_tag)
         return xml_tags
 
@@ -145,15 +172,15 @@ class XBMCNFO(Agent.Movies):
 
 # ##### search function #####
     def search(self, results, media, lang):
-        self.debug_log('++++++++++++++++++++++++')
-        self.debug_log('Entering search function')
-        self.debug_log('++++++++++++++++++++++++')
-        Log('{plugin} Version: {number}'.format(plugin=self.name, 
-                                                number=self.ver))
+        log.debug('++++++++++++++++++++++++')
+        log.debug('Entering search function')
+        log.debug('++++++++++++++++++++++++')
+        log.info('{plugin} Version: {number}'.format(
+            plugin=self.name, number=self.ver))
         path1 = media.items[0].parts[0].file
-        self.debug_log('media file: {name}'.format(name=path1))
+        log.debug('media file: {name}'.format(name=path1))
         folder_path = os.path.dirname(path1)
-        self.debug_log('folder path: {name}'.format(name=folder_path))
+        log.debug('folder path: {name}'.format(name=folder_path))
 
         # Movie name with year from folder
         movie_name_with_year = self.get_movie_name_from_folder(folder_path, True)
@@ -183,7 +210,7 @@ class XBMCNFO(Agent.Movies):
             # them. This may need to go farther than just &'s....
             nfo_text = NFO_TEXT_REGEX_1.sub('&amp;', nfo_text)
             # remove empty xml tags from nfo
-            self.debug_log('Removing empty XML tags from movies nfo...')
+            log.debug('Removing empty XML tags from movies nfo...')
             nfo_text = NFO_TEXT_REGEX_2.sub('', nfo_text)
 
             nfo_text_lower = nfo_text.lower()
@@ -197,29 +224,29 @@ class XBMCNFO(Agent.Movies):
                 try:
                     nfo_xml = XML.ElementFromString(nfo_text).xpath('//movie')[0]
                 except:
-                    self.debug_log('ERROR: Cant parse XML in {nfo}.'
-                                   ' Aborting!'.format(nfo=nfo_file))
+                    log.debug('ERROR: Cant parse XML in {nfo}.'
+                              ' Aborting!'.format(nfo=nfo_file))
                     return
 
                 # Title
                 try:
                     media.name = nfo_xml.xpath('title')[0].text
                 except:
-                    self.debug_log('ERROR: No <title> tag in {nfo}.'
-                                   ' Aborting!'.format(nfo=nfo_file))
+                    log.debug('ERROR: No <title> tag in {nfo}.'
+                              ' Aborting!'.format(nfo=nfo_file))
                     return
                 # Sort Title
                 try:
                     media.title_sort = nfo_xml.xpath('sorttitle')[0].text
                 except:
-                    self.debug_log('No <sorttitle> tag'
-                                   ' in {nfo}.'.format(nfo=nfo_file))
+                    log.debug('No <sorttitle> tag in {nfo}.'.format(
+                        nfo=nfo_file))
                     pass
                 # Year
                 try:
                     media.year = int(nfo_xml.xpath('year')[0].text.strip())
-                    self.debug_log('Reading year tag:'
-                                   ' {year}'.format(year=media.year))
+                    log.debug('Reading year tag: {year}'.format(
+                        year=media.year))
                 except:
                     pass
                 # ID
@@ -230,7 +257,7 @@ class XBMCNFO(Agent.Movies):
                     pass
                 if len(id) > 2:
                         media.id = id
-                        self.debug_log('ID from nfo: {id}'.format(id=media.id))
+                        log.debug('ID from nfo: {id}'.format(id=media.id))
                 else:
                     # if movie id doesn't exist, create
                     # one based on hash of title and year
@@ -239,32 +266,31 @@ class XBMCNFO(Agent.Movies):
                     id = int(''.join(map(ord3, media.name+str(media.year))))
                     id = str(abs(hash(int(id))))
                     media.id = id
-                    self.debug_log('ID generated: {id}'.format(id=media.id))
+                    log.debug('ID generated: {id}'.format(id=media.id))
 
                 results.Append(MetadataSearchResult(id=media.id, name=media.name, year=media.year, lang=lang, score=100))
                 try:
-                    Log('Found movie information in NFO file:'
-                        ' title = {nfo.name},'
-                        ' year = {nfo.year},'
-                        ' id = {nfo.id}'.format(nfo=media))
+                    log.info('Found movie information in NFO file:'
+                             ' title = {nfo.name},'
+                             ' year = {nfo.year},'
+                             ' id = {nfo.id}'.format(nfo=media))
                 except:
                     pass
             else:
-                Log('ERROR: No <movie> tag in {nfo}.'
-                    ' Aborting!'.format(nfo=nfo_file))
+                log.info('ERROR: No <movie> tag in {nfo}. Aborting!'.format(
+                    nfo=nfo_file))
 
 # ##### update Function #####
     def update(self, metadata, media, lang):
-        self.debug_log('++++++++++++++++++++++++')
-        self.debug_log('Entering update function')
-        self.debug_log('++++++++++++++++++++++++')
-        Log('{plugin} Version: {number}'.format(plugin=self.name, 
-                                                number=self.ver))
-
+        log.debug('++++++++++++++++++++++++')
+        log.debug('Entering update function')
+        log.debug('++++++++++++++++++++++++')
+        log.info('{plugin} Version: {number}'.format(
+            plugin=self.name, number=self.ver))
         path1 = media.items[0].parts[0].file
-        self.debug_log('media file: {name}'.format(name=path1))
+        log.debug('media file: {name}'.format(name=path1))
         folder_path = os.path.dirname(path1)
-        self.debug_log('folder path: {name}'.format(name=folder_path))
+        log.debug('folder path: {name}'.format(name=folder_path))
 
         is_dvd = os.path.basename(folder_path).upper() == 'VIDEO_TS'
         if is_dvd:
@@ -364,7 +390,7 @@ class XBMCNFO(Agent.Movies):
             # them. This may need to go farther than just &'s....
             nfo_text = NFO_TEXT_REGEX_1.sub(r'&amp;', nfo_text)
             # remove empty xml tags from nfo
-            self.debug_log('Removing empty XML tags from movies nfo...')
+            log.debug('Removing empty XML tags from movies nfo...')
             nfo_text = NFO_TEXT_REGEX_2.sub('', nfo_text)
 
             nfo_text_lower = nfo_text.lower()
@@ -378,33 +404,33 @@ class XBMCNFO(Agent.Movies):
                 try:
                     nfo_xml = XML.ElementFromString(nfo_text).xpath('//movie')[0]
                 except:
-                    self.debug_log('ERROR: Cant parse XML in {nfo}.'
-                                   ' Aborting!'.format(nfo=nfo_file))
+                    log.debug('ERROR: Cant parse XML in {nfo}.'
+                              ' Aborting!'.format(nfo=nfo_file))
                     return
 
                 # remove empty xml tags
-                self.debug_log('Removing empty XML tags from movies nfo...')
+                log.debug('Removing empty XML tags from movies nfo...')
                 nfo_xml = self.remove_empty_tags(nfo_xml)
 
                 # Title
                 try:
                     metadata.title = nfo_xml.xpath('title')[0].text.strip()
                 except:
-                    self.debug_log('ERROR: No <title> tag in {nfo}.'
-                                   ' Aborting!'.format(nfo=nfo_file))
+                    log.debug('ERROR: No <title> tag in {nfo}.'
+                              ' Aborting!'.format(nfo=nfo_file))
                     return
                 # Sort Title
                 try:
                     metadata.title_sort = nfo_xml.xpath('sorttitle')[0].text.strip()
                 except:
-                    self.debug_log('No <sorttitle> tag'
-                                   ' in {nfo}.'.format(nfo=nfo_file))
+                    log.debug('No <sorttitle> tag in {nfo}.'.format(
+                        nfo=nfo_file))
                     pass
                 # Year
                 try:
                     metadata.year = int(nfo_xml.xpath('year')[0].text.strip())
-                    self.debug_log('Set year tag:'
-                                   ' {year}'.format(year=metadata.year))
+                    log.debug('Set year tag: {year}'.format(
+                        year=metadata.year))
                 except:
                     pass
                 # Original Title
@@ -421,7 +447,7 @@ class XBMCNFO(Agent.Movies):
                     match = RATING_REGEX_1.match(mpaa_text)
                     if match.group('mpaa'):
                         mpaa_rating = match.group('mpaa')
-                        self.debug_log('MPAA Rating: ' + mpaa_rating)
+                        log.debug('MPAA Rating: ' + mpaa_rating)
                 except:
                     pass
                 try:
@@ -439,15 +465,14 @@ class XBMCNFO(Agent.Movies):
                             if country[0] == 'DE':
                                 country[0] = 'Germany'
                             content_rating[country[0]] = country[1].strip('+').replace('FSK', '').replace('ab ', '').strip()
-                    self.debug_log('Content Rating(s): ' + str(content_rating))
+                    log.debug('Content Rating(s): ' + str(content_rating))
                 except:
                     pass
                 if Prefs['country'] != '':
                     cc = COUNTRY_CODES[Prefs['country']].split(',')
-                    self.debug_log('Country code from settings:'
-                                   ' {name}:{code}'.format(
-                        name=Prefs['country'], code=cc)
-                    )
+                    log.debug(
+                        'Country code from settings: {name}:{code}'.format(
+                            name=Prefs['country'], code=cc))
                     if cc[0] in content_rating:
                         if cc[1] == '':
                             metadata.content_rating = content_rating.get(cc[0])
@@ -476,27 +501,27 @@ class XBMCNFO(Agent.Movies):
                     release_string = None
                     release_date = None
                     try:
-                        self.debug_log('Reading releasedate tag...')
+                        log.debug('Reading releasedate tag...')
                         release_string = nfo_xml.xpath('releasedate')[0].text.strip()
-                        self.debug_log('Releasedate tag is: {value}'.format(value=release_string))
+                        log.debug('Releasedate tag is: {value}'.format(value=release_string))
                     except:
-                        self.debug_log('No releasedate tag found...')
+                        log.debug('No releasedate tag found...')
                         pass
                     if not release_string:
                         try:
-                            self.debug_log('Reading premiered tag...')
+                            log.debug('Reading premiered tag...')
                             release_string = nfo_xml.xpath('premiered')[0].text.strip()
-                            self.debug_log('Premiered tag is: {value}'.format(value=release_string))
+                            log.debug('Premiered tag is: {value}'.format(value=release_string))
                         except:
-                            self.debug_log('No premiered tag found...')
+                            log.debug('No premiered tag found...')
                             pass
                     if not release_string:
                         try:
-                            self.debug_log('Reading date added tag...')
+                            log.debug('Reading date added tag...')
                             release_string = nfo_xml.xpath('dateadded')[0].text.strip()
-                            self.debug_log('Dateadded tag is: {value}'.format(value=release_string))
+                            log.debug('Dateadded tag is: {value}'.format(value=release_string))
                         except:
-                            self.debug_log('No dateadded tag found...')
+                            log.debug('No dateadded tag found...')
                             pass
                     if release_string:
                         try:
@@ -505,23 +530,23 @@ class XBMCNFO(Agent.Movies):
                             else:
                                 dt = parse(release_string)
                             release_date = dt
-                            self.debug_log('Set premiere to: {date}'.format(
+                            log.debug('Set premiere to: {date}'.format(
                                 date=dt.strftime('%Y-%m-%d')))
                             if not metadata.year:
                                 metadata.year = int(dt.strftime('%Y'))
-                                self.debug_log('Set year tag from premiere: {year}'.format(year=metadata.year))
+                                log.debug('Set year tag from premiere: {year}'.format(year=metadata.year))
                         except:
-                            self.debug_log('Couldn\'t parse premiere: {release}'.format(release=air_string))
+                            log.debug('Couldn\'t parse premiere: {release}'.format(release=air_string))
                             pass
                 except:
-                    Log.Exception('Exception parsing release date')
+                    log.exception('Exception parsing release date')
                 try:
                     if not release_date:
-                        self.debug_log('Fallback to year tag instead...')
+                        log.debug('Fallback to year tag instead...')
                         release_date = time.strptime(str(metadata.year) + '-01-01', '%Y-%m-%d')
                         metadata.originally_available_at = datetime.datetime.fromtimestamp(time.mktime(release_date)).date()
                     else:
-                        self.debug_log('Setting release date...')
+                        log.debug('Setting release date...')
                         metadata.originally_available_at = release_date
                 except:
                     pass
@@ -534,17 +559,17 @@ class XBMCNFO(Agent.Movies):
                 # Summary (Outline/Plot)
                 try:
                     if Prefs['plot']:
-                        self.debug_log('User setting forces plot before outline...')
+                        log.debug('User setting forces plot before outline...')
                         s_type_1 = 'plot'
                         s_type_2 = 'outline'
                     else:
-                        self.debug_log('Default setting forces outline before plot...')
+                        log.debug('Default setting forces outline before plot...')
                         s_type_1 = 'outline'
                         s_type_2 = 'plot'
                     try:
                         summary = nfo_xml.xpath(s_type_1)[0].text.strip('| \t\r\n')
                         if not summary:
-                            self.debug_log('No or empty {primary} tag. Fallback to {secondary}...'.format(
+                            log.debug('No or empty {primary} tag. Fallback to {secondary}...'.format(
                                 primary=s_type_1, secondary=s_type_2
                             ))
                             raise
@@ -552,40 +577,40 @@ class XBMCNFO(Agent.Movies):
                         summary = nfo_xml.xpath(s_type_2)[0].text.strip('| \t\r\n')
                     metadata.summary = summary
                 except:
-                    self.debug_log('Exception on reading summary!')
+                    log.debug('Exception on reading summary!')
                     metadata.summary = ''
                     pass
                 # Ratings
                 try:
                     nfo_rating = None
                     nfo_rating = round(float(nfo_xml.xpath('rating')[0].text.replace(',', '.')), 1)
-                    self.debug_log('Series Rating found: ' + str(nfo_rating))
+                    log.debug('Series Rating found: ' + str(nfo_rating))
                 except:
                     pass
                 if not nfo_rating:
-                    self.debug_log('Reading old rating style failed.'
-                                   ' Trying new Krypton style.')
+                    log.debug('Reading old rating style failed.'
+                              ' Trying new Krypton style.')
                     for ratings in nfo_xml.xpath('ratings'):
                         try:
                             rating = ratings.xpath('rating')[0]
                             nfo_rating = round(float(rating.xpath('value')[0].text.replace(',', '.')), 1)
-                            self.debug_log('Krypton style series rating found:'
-                                           ' {rating}'.format(rating=nfo_rating))
+                            log.debug('Krypton style series rating found:'
+                                      ' {rating}'.format(rating=nfo_rating))
                         except:
-                            self.debug_log('Can\'t read rating from tvshow.nfo.')
+                            log.debug('Can\'t read rating from tvshow.nfo.')
                             nfo_rating = 0.0
                             pass
                 if Prefs['altratings']:
-                    self.debug_log('Searching for additional Ratings...')
+                    log.debug('Searching for additional Ratings...')
                     allowed_ratings = Prefs['ratings']
                     if not allowed_ratings:
                         allowed_ratings = ''
                     add_ratings_string = ''
                     try:
                         add_ratings = nfo_xml.xpath('ratings')
-                        self.debug_log('Trying to read additional ratings from .nfo.')
+                        log.debug('Trying to read additional ratings from .nfo.')
                     except:
-                        self.debug_log('Can\'t read additional ratings from .nfo.')
+                        log.debug('Can\'t read additional ratings from .nfo.')
                         pass
                     if add_ratings:
                         for add_rating_xml in add_ratings:
@@ -594,19 +619,20 @@ class XBMCNFO(Agent.Movies):
                                     rating_provider = str(add_rating.attrib['moviedb'])
                                 except:
                                     pass
-                                    self.debug_log('Skipping additional rating without moviedb attribute!')
+                                    log.debug('Skipping additional rating without moviedb attribute!')
                                     continue
                                 rating_value = str(add_rating.text.replace(',', '.'))
                                 if rating_provider.lower() in PERCENT_RATINGS:
                                     rating_value += '%'
                                 if rating_provider in allowed_ratings or allowed_ratings == '':
-                                    self.debug_log('adding rating: ' + rating_provider + ': ' + rating_value)
+                                    log.debug('adding rating: ' + rating_provider + ': ' + rating_value)
                                     add_ratings_string = add_ratings_string + ' | ' + rating_provider + ': ' + rating_value
                             if add_ratings_string != '':
-                                self.debug_log('Putting additional ratings at'
-                                               ' the {position} of the'
-                                               ' summary!'.format(
-                                    position=Prefs['ratingspos']))
+                                log.debug(
+                                    'Putting additional ratings at the'
+                                    ' {position} of the summary!'.format(
+                                        position=Prefs['ratingspos'])
+                                )
                                 if Prefs['ratingspos'] == 'front':
                                     if Prefs['preserverating']:
                                         metadata.summary = add_ratings_string[3:] + self.unescape(' &#9733;\n\n') + metadata.summary
@@ -615,9 +641,9 @@ class XBMCNFO(Agent.Movies):
                                 else:
                                     metadata.summary = metadata.summary + self.unescape('\n\n&#9733; ') + add_ratings_string[3:] + self.unescape(' &#9733;')
                             else:
-                                self.debug_log('Additional ratings empty or malformed!')
+                                log.debug('Additional ratings empty or malformed!')
                 if Prefs['preserverating']:
-                    self.debug_log('Putting .nfo rating in front of summary!')
+                    log.debug('Putting .nfo rating in front of summary!')
                     if not nfo_rating:
                         nfo_rating = 0.0
                     metadata.summary = self.unescape(str(Prefs['beforerating'])) + '{:.1f}'.format(nfo_rating) + self.unescape(str(Prefs['afterrating'])) + metadata.summary
@@ -667,7 +693,7 @@ class XBMCNFO(Agent.Movies):
                     pass
                 # Duration
                 try:
-                    self.debug_log('Trying to read <durationinseconds> tag from .nfo file...')
+                    log.debug('Trying to read <durationinseconds> tag from .nfo file...')
                     file_info_xml = XML.ElementFromString(nfo_text).xpath('fileinfo')[0]
                     stream_details_xml = file_info_xml.xpath('streamdetails')[0]
                     video_xml = stream_details_xml.xpath('video')[0]
@@ -675,11 +701,11 @@ class XBMCNFO(Agent.Movies):
                     metadata.duration = int(re.compile('^([0-9]+)').findall(runtime)[0]) * 1000  # s
                 except:
                     try:
-                        self.debug_log('Fallback to <runtime> tag from .nfo file...')
+                        log.debug('Fallback to <runtime> tag from .nfo file...')
                         runtime = nfo_xml.xpath('runtime')[0].text.strip()
                         metadata.duration = int(re.compile('^([0-9]+)').findall(runtime)[0]) * 60 * 1000  # ms
                     except:
-                        self.debug_log('No Duration in .nfo file.')
+                        log.debug('No Duration in .nfo file.')
                         pass
                 # Actors
                 metadata.roles.clear()
@@ -722,103 +748,102 @@ class XBMCNFO(Agent.Movies):
                                         title = metadata.title
                                 if title != '':
                                     metadata.extras.add(TrailerObject(title=title, file=os.path.join(folder_path, f)))
-                                    self.debug_log('Found trailer file ' + os.path.join(folder_path, f))
-                                    self.debug_log('Trailer title:' + title)
+                                    log.debug('Found trailer file ' + os.path.join(folder_path, f))
+                                    log.debug('Trailer title:' + title)
                             except:
-                                self.debug_log('Exception adding trailer file!')
+                                log.debug('Exception adding trailer file!')
 
-
-                Log('---------------------')
-                Log('Movie nfo Information')
-                Log('---------------------')
+                log.info('---------------------')
+                log.info('Movie nfo Information')
+                log.info('---------------------')
                 try:
-                    Log('ID: ' + str(metadata.guid))
+                    log.info('ID: ' + str(metadata.guid))
                 except:
-                    Log('ID: -')
+                    log.info('ID: -')
                 try:
-                    Log('Title: ' + str(metadata.title))
+                    log.info('Title: ' + str(metadata.title))
                 except:
-                    Log('Title: -')
+                    log.info('Title: -')
                 try:
-                    Log('Sort Title: ' + str(metadata.title_sort))
+                    log.info('Sort Title: ' + str(metadata.title_sort))
                 except:
-                    Log('Sort Title: -')
+                    log.info('Sort Title: -')
                 try:
-                    Log('Year: ' + str(metadata.year))
+                    log.info('Year: ' + str(metadata.year))
                 except:
-                    Log('Year: -')
+                    log.info('Year: -')
                 try:
-                    Log('Original: ' + str(metadata.original_title))
+                    log.info('Original: ' + str(metadata.original_title))
                 except:
-                    Log('Original: -')
+                    log.info('Original: -')
                 try:
-                    Log('Rating: ' + str(metadata.rating))
+                    log.info('Rating: ' + str(metadata.rating))
                 except:
-                    Log('Rating: -')
+                    log.info('Rating: -')
                 try:
-                    Log('Content: ' + str(metadata.content_rating))
+                    log.info('Content: ' + str(metadata.content_rating))
                 except:
-                    Log('Content: -')
+                    log.info('Content: -')
                 try:
-                    Log('Studio: ' + str(metadata.studio))
+                    log.info('Studio: ' + str(metadata.studio))
                 except:
-                    Log('Studio: -')
+                    log.info('Studio: -')
                 try:
-                    Log('Premiere: ' + str(metadata.originally_available_at))
+                    log.info('Premiere: ' + str(metadata.originally_available_at))
                 except:
-                    Log('Premiere: -')
+                    log.info('Premiere: -')
                 try:
-                    Log('Tagline: ' + str(metadata.tagline))
+                    log.info('Tagline: ' + str(metadata.tagline))
                 except:
-                    Log('Tagline: -')
+                    log.info('Tagline: -')
                 try:
-                    Log('Summary: ' + str(metadata.summary))
+                    log.info('Summary: ' + str(metadata.summary))
                 except:
-                    Log('Summary: -')
-                Log('Writers:')
+                    log.info('Summary: -')
+                log.info('Writers:')
                 try:
-                    [Log('\t' + writer.name) for writer in metadata.writers]
+                    [log.info('\t' + writer.name) for writer in metadata.writers]
                 except:
-                    Log('\t-')
-                Log('Directors:')
+                    log.info('\t-')
+                log.info('Directors:')
                 try:
-                    [Log('\t' + director.name) for director in metadata.directors]
+                    [log.info('\t' + director.name) for director in metadata.directors]
                 except:
-                    Log('\t-')
-                Log('Genres:')
+                    log.info('\t-')
+                log.info('Genres:')
                 try:
-                    [Log('\t' + genre) for genre in metadata.genres]
+                    [log.info('\t' + genre) for genre in metadata.genres]
                 except:
-                    Log('\t-')
-                Log('Countries:')
+                    log.info('\t-')
+                log.info('Countries:')
                 try:
-                    [Log('\t' + country) for country in metadata.countries]
+                    [log.info('\t' + country) for country in metadata.countries]
                 except:
-                    Log('\t-')
-                Log('Collections:')
+                    log.info('\t-')
+                log.info('Collections:')
                 try:
-                    [Log('\t' + collection) for collection in metadata.collections]
+                    [log.info('\t' + collection) for collection in metadata.collections]
                 except:
-                    Log('\t-')
+                    log.info('\t-')
                 try:
-                    Log('Duration: {time} min'.format(
+                    log.info('Duration: {time} min'.format(
                         time=metadata.duration // 60000))
                 except:
-                    Log('Duration: -')
-                Log('Actors:')
+                    log.info('Duration: -')
+                log.info('Actors:')
                 try:
-                    [Log('\t{actor.name} > {actor.role}'.format(actor=actor)
-                         for actor in metadata.roles)]
+                    [log.info('\t{actor.name} > {actor.role}'.format(actor=actor)
+                              for actor in metadata.roles)]
                 except:
                     try:
-                        [Log('\t{actor.name}'.format(actor=actor)
-                             for actor in metadata.roles)]
+                        [log.info('\t{actor.name}'.format(actor=actor)
+                                  for actor in metadata.roles)]
                     except:
-                        Log('\t-')
-                Log('---------------------')
+                        log.info('\t-')
+                log.info('---------------------')
             else:
-                Log('ERROR: No <movie> tag in {nfo}.'
-                    ' Aborting!'.format(nfo=nfo_file))
+                log.info('ERROR: No <movie> tag in {nfo}.'
+                         ' Aborting!'.format(nfo=nfo_file))
             return metadata
 
 xbmcnfo = XBMCNFO
