@@ -1,21 +1,26 @@
-# XBMCnfoMoviesImporter
-# spec'd from:
-#  http://wiki.xbmc.org/index.php?title=Import_-_Export_Library#Video_nfo_Files
-#
-# Original code author: Harley Hooligan
-# Modified by Guillaume Boudreau
-# Eden and Frodo compatibility added by Jorge Amigo
-# Cleanup and some extensions by SlrG
-# Multipart filter idea by diamondsw
-# Logo by CrazyRabbit
-# Krypton Rating fix by F4RHaD
-#
+# coding=utf-8
+
+"""
+XBMCnfoMoviesImporter
+
+spec'd from:
+ http://wiki.xbmc.org/index.php?title=Import_-_Export_Library#Video_nfo_Files
+
+CREDITS:
+    Original code author: .......... Harley Hooligan
+    Modified by: ................... Guillaume Boudreau
+    Eden and Frodo compatibility: .. Jorge Amigo
+    Cleanup and some extensions: ... SlrG
+    Multipart filter idea: ......... diamondsw
+    Logo: .......................... CrazyRabbit
+    Krypton Rating fix: ............ F4RHaD
+    PEP 8 and refactoring: ......... Labrys
+"""
+
 import os
 import re
 import time
 import datetime
-import platform
-import traceback
 import re
 import htmlentitydefs
 from dateutil.parser import parse
