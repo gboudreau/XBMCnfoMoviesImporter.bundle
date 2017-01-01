@@ -34,13 +34,13 @@
     "id":"beforerating",
     "label":"text before rating (supports html specialchars!):",
     "type":"text",
-    "default":"&#9733; ",
+    "default":"&#9733; "
   },
   {
     "id":"afterrating",
     "label":"text after rating (supports html specialchars!):",
     "type":"text",
-    "default":" | ",
+    "default":" | "
   },
   {
     "id":"preserverating",
@@ -52,7 +52,7 @@
     "id":"ratings",
     "label":"Restrict additional ratings to identifiers separated by comma (eg: IMDb, RT). If left empty all ratings found will be included.",
     "type":"text",
-    "default":"",
+    "default":""
   },
   {
     "id":"ratingspos",
@@ -60,7 +60,7 @@
     "type": "enum",
     "values": [
       "front",
-      "back",
+      "back"
     ],
     "default": "back"
   },
@@ -82,7 +82,7 @@
       "Germany",
       "Netherlands",
       "United Kingdom",
-      "United States",
+      "United States"
     ],
     "default": ""
   }
