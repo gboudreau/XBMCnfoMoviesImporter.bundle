@@ -37,9 +37,6 @@ PERCENT_RATINGS = {
     'flixster',
 }
 
-VIDEO_FILE_BASE_REGEX = re.compile(
-    r'(?is)\s*\-\s*(cd|dvd|disc|disk|part|pt|d)\s*[0-9]$'
-)
 MOVIE_NAME_REGEX = re.compile(r' \(.*\)')
 UNESCAPE_REGEX = re.compile('&#?\w+;')
 NFO_TEXT_REGEX_1 = re.compile(
@@ -99,14 +96,7 @@ class XBMCNFO(Agent.Movies):
         'com.plexapp.agents.subzero'
     ]
 
-
 # ##### helper functions #####
-    def get_related_file(self, video_file, file_extension):
-        video_file_extension = video_file.split('.')[-1]
-        video_file_base = video_file.replace('.' + video_file_extension, '')
-        video_file_base = VIDEO_FILE_BASE_REGEX.sub('', video_file_base)
-        video_file_base = VIDEO_FILE_BASE_REGEX.sub('', video_file_base)
-        return video_file_base + file_extension
 
     def get_movie_name_from_folder(self, folder_path, with_year):
         folder_split = folder_path.split(os.sep)
@@ -193,7 +183,7 @@ class XBMCNFO(Agent.Movies):
 
         nfo_names = []
         # Eden / Frodo
-        nfo_names.append(self.get_related_file(path1, '.nfo'))
+        nfo_names.append(get_related_file(path1, '.nfo'))
         nfo_names.append('{movie}.nfo'.format(movie=movie_name_with_year))
         nfo_names.append('{movie}.nfo'.format(movie=movie_name))
         # VIDEO_TS
@@ -311,19 +301,19 @@ class XBMCNFO(Agent.Movies):
             poster_filename = ''
             poster_names = []
             # Frodo
-            poster_names.append(self.get_related_file(path1, '-poster.jpg'))
+            poster_names.append(get_related_file(path1, '-poster.jpg'))
             poster_names.append('{movie}-poster.jpg'.format(movie=movie_name_with_year))
             poster_names.append('{movie}-poster.jpg'.format(movie=movie_name))
             poster_names.append(os.path.join(folder_path, 'poster.jpg'))
             if is_dvd:
                 poster_names.append(os.path.join(folder_path_dvd, 'poster.jpg'))
             # Eden
-            poster_names.append(self.get_related_file(path1, '.tbn'))
+            poster_names.append(get_related_file(path1, '.tbn'))
             poster_names.append('{path}/folder.jpg'.format(path=folder_path))
             if is_dvd:
                 poster_names.append(os.path.join(folder_path_dvd, 'folder.jpg'))
             # DLNA
-            poster_names.append(self.get_related_file(path1, '.jpg'))
+            poster_names.append(get_related_file(path1, '.jpg'))
             # Others
             poster_names.append('{path}/cover.jpg'.format(path=folder_path))
             if is_dvd:
@@ -347,7 +337,7 @@ class XBMCNFO(Agent.Movies):
             fanart_filename = ''
             fanart_names = []
             # Eden / Frodo
-            fanart_names.append(self.get_related_file(path1, '-fanart.jpg'))
+            fanart_names.append(get_related_file(path1, '-fanart.jpg'))
             fanart_names.append('{movie}-fanart.jpg'.format(movie=movie_name_with_year))
             fanart_names.append('{movie}-fanart.jpg'.format(movie=movie_name))
             fanart_names.append(os.path.join(folder_path, 'fanart.jpg'))
@@ -374,7 +364,7 @@ class XBMCNFO(Agent.Movies):
 
         nfo_names = []
         # Eden / Frodo
-        nfo_names.append(self.get_related_file(path1, '.nfo'))
+        nfo_names.append(get_related_file(path1, '.nfo'))
         nfo_names.append('{movie}.nfo'.format(movie=movie_name_with_year))
         nfo_names.append('{movie}.nfo'.format(movie=movie_name))
         # VIDEO_TS
@@ -852,3 +842,40 @@ class XBMCNFO(Agent.Movies):
             return metadata
 
 xbmcnfo = XBMCNFO
+
+
+# Helper Functions
+VIDEO_FILE_BASE_REGEX = re.compile(
+    r'(?is)\s*-\s*(cd|dvd|disc|disk|part|pt|d)\s*[0-9]$'
+)
+
+
+def get_base_file(video_file):
+    """
+    Get a Movie's base filename.
+
+    This strips the video file extension and any CD / DVD or Part
+    information from the video's filename.
+
+    :param video_file: filename to be processed
+    :return: string containing base file name
+    """
+    # split the filename and extension
+    base, extension = os.path.splitext(video_file)
+    del extension  # video file's extension is not used
+    # Strip CD / DVD / Part information from file name
+    base = VIDEO_FILE_BASE_REGEX.sub('', base)
+    # Repeat a second time
+    base = VIDEO_FILE_BASE_REGEX.sub('', base)
+    return base
+
+
+def get_related_file(video_file, file_extension):
+    """
+    Get a file related to the Video with a different extension.
+
+    :param video_file: the filename of the associated video
+    :param file_extension: the related files extension
+    :return: a filename for a related file
+    """
+    return get_base_file(video_file) + file_extension
