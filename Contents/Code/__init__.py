@@ -1,21 +1,26 @@
-# XBMCnfoMoviesImporter
-# spec'd from:
-#  http://wiki.xbmc.org/index.php?title=Import_-_Export_Library#Video_nfo_Files
-#
-# Original code author: Harley Hooligan
-# Modified by Guillaume Boudreau
-# Eden and Frodo compatibility added by Jorge Amigo
-# Cleanup and some extensions by SlrG
-# Multipart filter idea by diamondsw
-# Logo by CrazyRabbit
-# Krypton Rating fix by F4RHaD
-#
+# coding=utf-8
+
+"""
+XBMCnfoMoviesImporter
+
+spec'd from:
+ http://wiki.xbmc.org/index.php?title=Import_-_Export_Library#Video_nfo_Files
+
+CREDITS:
+    Original code author: .......... Harley Hooligan
+    Modified by: ................... Guillaume Boudreau
+    Eden and Frodo compatibility: .. Jorge Amigo
+    Cleanup and some extensions: ... SlrG
+    Multipart filter idea: ......... diamondsw
+    Logo: .......................... CrazyRabbit
+    Krypton Rating fix: ............ F4RHaD
+    PEP 8 and refactoring: ......... Labrys
+"""
+
 import os
 import re
 import time
 import datetime
-import platform
-import traceback
 import re
 import htmlentitydefs
 from dateutil.parser import parse
@@ -37,10 +42,6 @@ PERCENT_RATINGS = {
     'flixster',
 }
 
-VIDEO_FILE_BASE_REGEX = re.compile(
-    r'(?is)\s*\-\s*(cd|dvd|disc|disk|part|pt|d)\s*[0-9]$'
-)
-MOVIE_NAME_REGEX = re.compile(r' \(.*\)')
 UNESCAPE_REGEX = re.compile('&#?\w+;')
 NFO_TEXT_REGEX_1 = re.compile(
     r'&(?![A-Za-z]+[0-9]*;|#[0-9]+;|#x[0-9a-fA-F]+;)'
@@ -52,38 +53,12 @@ RATING_REGEX_1 = re.compile(
 RATING_REGEX_2 = re.compile(r'\s*\(.*?\)')
 
 
-
-class PlexLogAdapter(object):
-    """
-    Adapts Plex Log class to standard python logging style.
-
-    This is a very simple remap of methods and does not provide
-    full python standard logging functionality.
-    """
-    debug = Log.Debug
-    info = Log.Info
-    warn = Log.Warn
-    error = Log.Error
-    critical = Log.Critical
-    exception = Log.Exception
-
-
-class XBMCLogAdapter(PlexLogAdapter):
-    """
-    Plex Log adapter that only emits debug statements based on preferences.
-    """
-    @staticmethod
-    def debug(*args, **kwargs):
-        """
-        Selective logging of debug message based on preference.
-        """
-        if Prefs['debug']:
-            Log.Debug(*args, **kwargs)
-
-log = XBMCLogAdapter
-
-
 class XBMCNFO(Agent.Movies):
+    """
+    A Plex Metadata Agent for Movies.
+
+    Uses XBMC nfo files as the metadata source for Plex Movies.
+    """
     name = 'XBMCnfoMoviesImporter'
     ver = '1.1-52-g75074b5-158'
     primary_provider = True
@@ -95,53 +70,7 @@ class XBMCNFO(Agent.Movies):
         'com.plexapp.agents.subzero'
     ]
 
-
 # ##### helper functions #####
-    def get_related_file(self, video_file, file_extension):
-        video_file_extension = video_file.split('.')[-1]
-        video_file_base = video_file.replace('.' + video_file_extension, '')
-        video_file_base = VIDEO_FILE_BASE_REGEX.sub('', video_file_base)
-        video_file_base = VIDEO_FILE_BASE_REGEX.sub('', video_file_base)
-        return video_file_base + file_extension
-
-    def get_movie_name_from_folder(self, folder_path, with_year):
-        folder_split = folder_path.split(os.sep)
-        if with_year:
-            if folder_split[-1] == 'VIDEO_TS':
-                movie_name = os.sep.join(folder_split[1:len(folder_split)-1:]) + os.sep + folder_split[-2]
-            else:
-                movie_name = os.sep.join(folder_split) + os.sep + folder_split[-1]
-            log.debug('Movie name from folder (with year): {name}'.format(
-                name=movie_name))
-        else:
-            if folder_split[-1] == 'VIDEO_TS':
-                movie_name = os.sep.join(folder_split[1:len(folder_split)-1:]) + os.sep + MOVIE_NAME_REGEX.sub('', folder_split[-2])
-            else:
-                movie_name = os.sep.join(folder_split) + os.sep + MOVIE_NAME_REGEX.sub('', folder_split[-1])
-            log.debug('Movie name from folder: {name}'.format(name=movie_name))
-        return movie_name
-
-    def check_file_paths(self, path_fns, f_type):
-        for path_fn in path_fns:
-            log.debug('Trying {name}'.format(name=path_fn))
-            if not os.path.exists(path_fn):
-                continue
-            else:
-                log.info('Found {type} file {name}'.format(
-                    type=f_type, name=path_fn))
-                return path_fn
-        else:
-            log.info('No {type} file found! Aborting!'.format(type=f_type))
-
-    def remove_empty_tags(self, xml_tags):
-        for xml_tag in xml_tags.iter('*'):
-            if len(xml_tag):
-                continue
-            if not (xml_tag.text and xml_tag.text.strip()):
-                # log.debug('Removing empty XMLTag: ' + xmltag.tag)
-                xml_tag.getparent().remove(xml_tag)
-        return xml_tags
-
     def unescape(self, markup):
         """
         Removes HTML or XML character references and entities from a text.
@@ -183,13 +112,13 @@ class XBMCNFO(Agent.Movies):
         log.debug('folder path: {name}'.format(name=folder_path))
 
         # Movie name with year from folder
-        movie_name_with_year = self.get_movie_name_from_folder(folder_path, True)
+        movie_name_with_year = get_movie_name_from_folder(folder_path, True)
         # Movie name from folder
-        movie_name = self.get_movie_name_from_folder(folder_path, False)
+        movie_name = get_movie_name_from_folder(folder_path, False)
 
         nfo_names = []
         # Eden / Frodo
-        nfo_names.append(self.get_related_file(path1, '.nfo'))
+        nfo_names.append(get_related_file(path1, '.nfo'))
         nfo_names.append('{movie}.nfo'.format(movie=movie_name_with_year))
         nfo_names.append('{movie}.nfo'.format(movie=movie_name))
         # VIDEO_TS
@@ -202,7 +131,7 @@ class XBMCNFO(Agent.Movies):
             nfo_names.append(os.path.join(folder_path, nfo_files[0]))
 
         # check possible .nfo file locations
-        nfo_file = self.check_file_paths(nfo_names, '.nfo')
+        nfo_file = check_file_paths(nfo_names, '.nfo')
 
         if nfo_file:
             nfo_text = Core.storage.load(nfo_file)
@@ -281,6 +210,7 @@ class XBMCNFO(Agent.Movies):
                     nfo=nfo_file))
 
 # ##### update Function #####
+
     def update(self, metadata, media, lang):
         log.debug('++++++++++++++++++++++++')
         log.debug('Entering update function')
@@ -297,28 +227,28 @@ class XBMCNFO(Agent.Movies):
             folder_path_dvd = os.path.dirname(folder_path)
 
         # Movie name with year from folder
-        movie_name_with_year = self.get_movie_name_from_folder(folder_path, True)
+        movie_name_with_year = get_movie_name_from_folder(folder_path, True)
         # Movie name from folder
-        movie_name = self.get_movie_name_from_folder(folder_path, False)
+        movie_name = get_movie_name_from_folder(folder_path, False)
 
         if not Prefs['localmediaagent']:
             poster_data = None
             poster_filename = ''
             poster_names = []
             # Frodo
-            poster_names.append(self.get_related_file(path1, '-poster.jpg'))
+            poster_names.append(get_related_file(path1, '-poster.jpg'))
             poster_names.append('{movie}-poster.jpg'.format(movie=movie_name_with_year))
             poster_names.append('{movie}-poster.jpg'.format(movie=movie_name))
             poster_names.append(os.path.join(folder_path, 'poster.jpg'))
             if is_dvd:
                 poster_names.append(os.path.join(folder_path_dvd, 'poster.jpg'))
             # Eden
-            poster_names.append(self.get_related_file(path1, '.tbn'))
+            poster_names.append(get_related_file(path1, '.tbn'))
             poster_names.append('{path}/folder.jpg'.format(path=folder_path))
             if is_dvd:
                 poster_names.append(os.path.join(folder_path_dvd, 'folder.jpg'))
             # DLNA
-            poster_names.append(self.get_related_file(path1, '.jpg'))
+            poster_names.append(get_related_file(path1, '.jpg'))
             # Others
             poster_names.append('{path}/cover.jpg'.format(path=folder_path))
             if is_dvd:
@@ -331,7 +261,7 @@ class XBMCNFO(Agent.Movies):
                 poster_names.append(os.path.join(folder_path_dvd, 'movie.jpg'))
 
             # check possible poster file locations
-            poster_filename = self.check_file_paths(poster_names, 'poster')
+            poster_filename = check_file_paths(poster_names, 'poster')
 
             if poster_filename:
                 poster_data = Core.storage.load(poster_filename)
@@ -342,7 +272,7 @@ class XBMCNFO(Agent.Movies):
             fanart_filename = ''
             fanart_names = []
             # Eden / Frodo
-            fanart_names.append(self.get_related_file(path1, '-fanart.jpg'))
+            fanart_names.append(get_related_file(path1, '-fanart.jpg'))
             fanart_names.append('{movie}-fanart.jpg'.format(movie=movie_name_with_year))
             fanart_names.append('{movie}-fanart.jpg'.format(movie=movie_name))
             fanart_names.append(os.path.join(folder_path, 'fanart.jpg'))
@@ -360,7 +290,7 @@ class XBMCNFO(Agent.Movies):
                 fanart_names.append(os.path.join(folder_path_dvd, 'background.jpg'))
 
             # check possible fanart file locations
-            fanart_filename = self.check_file_paths(fanart_names, 'fanart')
+            fanart_filename = check_file_paths(fanart_names, 'fanart')
 
             if fanart_filename:
                 fanart_data = Core.storage.load(fanart_filename)
@@ -369,7 +299,7 @@ class XBMCNFO(Agent.Movies):
 
         nfo_names = []
         # Eden / Frodo
-        nfo_names.append(self.get_related_file(path1, '.nfo'))
+        nfo_names.append(get_related_file(path1, '.nfo'))
         nfo_names.append('{movie}.nfo'.format(movie=movie_name_with_year))
         nfo_names.append('{movie}.nfo'.format(movie=movie_name))
         # VIDEO_TS
@@ -382,7 +312,7 @@ class XBMCNFO(Agent.Movies):
             nfo_names.append(os.path.join(folder_path, nfo_files[0]))
 
         # check possible .nfo file locations
-        nfo_file = self.check_file_paths(nfo_names, '.nfo')
+        nfo_file = check_file_paths(nfo_names, '.nfo')
 
         if nfo_file:
             nfo_text = Core.storage.load(nfo_file)
@@ -410,7 +340,7 @@ class XBMCNFO(Agent.Movies):
 
                 # remove empty xml tags
                 log.debug('Removing empty XML tags from movies nfo...')
-                nfo_xml = self.remove_empty_tags(nfo_xml)
+                nfo_xml = remove_empty_tags(nfo_xml)
 
                 # Title
                 try:
@@ -725,7 +655,8 @@ class XBMCNFO(Agent.Movies):
                         pass
 
                 if not Prefs['localmediaagent']:
-                    # Remote posters and fanarts are disabled for now; having them seems to stop the local artworks from being used.
+                    # Remote posters and fanarts are disabled for now; having
+                    # them seems to stop the local artworks from being used.
                     # (remote) posters
                     # (local) poster
                     if poster_data:
@@ -847,3 +778,153 @@ class XBMCNFO(Agent.Movies):
             return metadata
 
 xbmcnfo = XBMCNFO
+
+
+# -- LOG ADAPTER -------------------------------------------------------------
+
+class PlexLogAdapter(object):
+    """
+    Adapts Plex Log class to standard python logging style.
+
+    This is a very simple remap of methods and does not provide
+    full python standard logging functionality.
+    """
+    debug = Log.Debug
+    info = Log.Info
+    warn = Log.Warn
+    error = Log.Error
+    critical = Log.Critical
+    exception = Log.Exception
+
+
+class XBMCLogAdapter(PlexLogAdapter):
+    """
+    Plex Log adapter that only emits debug statements based on preferences.
+    """
+    @staticmethod
+    def debug(*args, **kwargs):
+        """
+        Selective logging of debug message based on preference.
+        """
+        if Prefs['debug']:
+            Log.Debug(*args, **kwargs)
+
+log = XBMCLogAdapter
+
+
+# -- HELPER FUNCTIONS --------------------------------------------------------
+
+VIDEO_FILE_BASE_REGEX = re.compile(
+    r'(?is)\s*-\s*(cd|dvd|disc|disk|part|pt|d)\s*[0-9]$'
+)
+
+
+def get_base_file(video_file):
+    """
+    Get a Movie's base filename.
+
+    This strips the video file extension and any CD / DVD or Part
+    information from the video's filename.
+
+    :param video_file: filename to be processed
+    :return: string containing base file name
+    """
+    # split the filename and extension
+    base, extension = os.path.splitext(video_file)
+    del extension  # video file's extension is not used
+    # Strip CD / DVD / Part information from file name
+    base = VIDEO_FILE_BASE_REGEX.sub('', base)
+    # Repeat a second time
+    base = VIDEO_FILE_BASE_REGEX.sub('', base)
+    return base
+
+
+def get_related_file(video_file, file_extension):
+    """
+    Get a file related to the Video with a different extension.
+
+    :param video_file: the filename of the associated video
+    :param file_extension: the related files extension
+    :return: a filename for a related file
+    """
+    return get_base_file(video_file) + file_extension
+
+
+MOVIE_NAME_REGEX = re.compile(r' \(.*\)')
+
+
+def get_movie_name_from_folder(folder_path, with_year):
+    """
+    Get the name of the movie from the folder.
+
+    :param folder_path:
+    :param with_year:
+    :return:
+    """
+    # Split the folder into a list of paths
+    folder_split = os.path.normpath(folder_path).split(os.sep)
+
+    if folder_split[-1] == 'VIDEO_TS':  # If the folder is from a DVD
+        # Strip the VIDEO_TS folder
+        base = os.path.join(*folder_split[1:len(folder_split) - 1])
+        name = folder_split[-2]
+    else:
+        base = os.path.join(*folder_split)
+        name = folder_split[-1]
+
+    if with_year:  # then apply the MOVIE_NAME_REGEX to strip year information
+        name = MOVIE_NAME_REGEX.sub('', name)
+
+    # Append the Movie name from folder to the end of the path
+    movie_name = os.path.join(base, name)
+    log.debug('Movie name from folder{with_year}: {name}'.format(
+        with_year=' (with year)' if with_year else '',
+        name=movie_name,
+    ))
+    return movie_name
+
+
+def check_file_paths(file_names, file_type=None):
+    """
+    CHeck a list of file names and return the first one found.
+
+    :param file_names: An iterable of file names to check
+    :param file_type: (Optional) Type of file searched for. Used for logging.
+    :return: a valid filename or None
+    """
+    for filename in file_names:
+        log.debug('Trying {name}'.format(name=filename))
+        if os.path.exists(filename):
+            log.info('Found {type} file {name}'.format(
+                type=file_type if file_type else 'a',
+                name=filename,
+            ))
+            return filename
+    else:
+        log.info('No {type} file found! Aborting!'.format(
+            type=file_type if file_type else 'valid'
+        ))
+
+
+def remove_empty_tags(document):
+    """
+    Removes empty XML tags.
+
+    :param document: An HTML element object.
+        see: http://lxml.de/api/lxml.etree._Element-class.html
+    :return:
+    """
+    empty_tags = []
+    for xml_tag in document.iter('*'):
+        if not all((
+                not len(xml_tag),
+                xml_tag.text,
+                xml_tag.text.strip()
+        )):
+            empty_tags.append(xml_tag.tag)
+            xml_tag.getparent().remove(xml_tag)
+    log.debug('Empty XMLTags removed: {number} {tags}'.format(
+        number=len(empty_tags) or None,
+        tags=sorted(set(empty_tags)) or ''
+    ))
+    return document
