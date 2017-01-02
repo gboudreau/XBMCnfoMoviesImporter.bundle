@@ -53,36 +53,6 @@ RATING_REGEX_1 = re.compile(
 RATING_REGEX_2 = re.compile(r'\s*\(.*?\)')
 
 
-class PlexLogAdapter(object):
-    """
-    Adapts Plex Log class to standard python logging style.
-
-    This is a very simple remap of methods and does not provide
-    full python standard logging functionality.
-    """
-    debug = Log.Debug
-    info = Log.Info
-    warn = Log.Warn
-    error = Log.Error
-    critical = Log.Critical
-    exception = Log.Exception
-
-
-class XBMCLogAdapter(PlexLogAdapter):
-    """
-    Plex Log adapter that only emits debug statements based on preferences.
-    """
-    @staticmethod
-    def debug(*args, **kwargs):
-        """
-        Selective logging of debug message based on preference.
-        """
-        if Prefs['debug']:
-            Log.Debug(*args, **kwargs)
-
-log = XBMCLogAdapter
-
-
 class XBMCNFO(Agent.Movies):
     """
     A Plex Metadata Agent for Movies.
@@ -817,6 +787,38 @@ class XBMCNFO(Agent.Movies):
             return metadata
 
 xbmcnfo = XBMCNFO
+
+
+# -- LOG ADAPTER -------------------------------------------------------------
+
+class PlexLogAdapter(object):
+    """
+    Adapts Plex Log class to standard python logging style.
+
+    This is a very simple remap of methods and does not provide
+    full python standard logging functionality.
+    """
+    debug = Log.Debug
+    info = Log.Info
+    warn = Log.Warn
+    error = Log.Error
+    critical = Log.Critical
+    exception = Log.Exception
+
+
+class XBMCLogAdapter(PlexLogAdapter):
+    """
+    Plex Log adapter that only emits debug statements based on preferences.
+    """
+    @staticmethod
+    def debug(*args, **kwargs):
+        """
+        Selective logging of debug message based on preference.
+        """
+        if Prefs['debug']:
+            Log.Debug(*args, **kwargs)
+
+log = XBMCLogAdapter
 
 
 # -- HELPER FUNCTIONS --------------------------------------------------------
