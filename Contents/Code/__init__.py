@@ -71,15 +71,6 @@ class XBMCNFO(Agent.Movies):
     ]
 
 # ##### helper functions #####
-    def remove_empty_tags(self, xml_tags):
-        for xml_tag in xml_tags.iter('*'):
-            if len(xml_tag):
-                continue
-            if not (xml_tag.text and xml_tag.text.strip()):
-                # log.debug('Removing empty XMLTag: ' + xmltag.tag)
-                xml_tag.getparent().remove(xml_tag)
-        return xml_tags
-
     def unescape(self, markup):
         """
         Removes HTML or XML character references and entities from a text.
@@ -349,7 +340,7 @@ class XBMCNFO(Agent.Movies):
 
                 # remove empty xml tags
                 log.debug('Removing empty XML tags from movies nfo...')
-                nfo_xml = self.remove_empty_tags(nfo_xml)
+                nfo_xml = remove_empty_tags(nfo_xml)
 
                 # Title
                 try:
@@ -913,3 +904,27 @@ def check_file_paths(file_names, file_type=None):
         log.info('No {type} file found! Aborting!'.format(
             type=file_type if file_type else 'valid'
         ))
+
+
+def remove_empty_tags(document):
+    """
+    Removes empty XML tags.
+
+    :param document: An HTML element object.
+        see: http://lxml.de/api/lxml.etree._Element-class.html
+    :return:
+    """
+    empty_tags = []
+    for xml_tag in document.iter('*'):
+        if not all((
+                not len(xml_tag),
+                xml_tag.text,
+                xml_tag.text.strip()
+        )):
+            empty_tags.append(xml_tag.tag)
+            xml_tag.getparent().remove(xml_tag)
+    log.debug('Empty XMLTags removed: {number} {tags}'.format(
+        number=len(empty_tags) or None,
+        tags=sorted(set(empty_tags)) or ''
+    ))
+    return document
