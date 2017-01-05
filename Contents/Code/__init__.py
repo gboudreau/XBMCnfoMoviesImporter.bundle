@@ -916,7 +916,7 @@ def remove_empty_tags(document):
     """
     empty_tags = []
     for xml_tag in document.iter('*'):
-        if not len(xml_tag) or not (xml_tag.text and xml_tag.text.strip()):
+        if not(len(xml_tag) or (xml_tag.text and xml_tag.text.strip())):
                 empty_tags.append(xml_tag.tag)
                 xml_tag.getparent().remove(xml_tag)
     log.debug('Empty XMLTags removed: {number} {tags}'.format(
