@@ -427,9 +427,9 @@ class XBMCNFO(Agent.Movies):
                 except:
                     pass
                 # Premiere
+                release_string = None
+                release_date = None
                 try:
-                    release_string = None
-                    release_date = None
                     try:
                         log.debug('Reading releasedate tag...')
                         release_string = nfo_xml.xpath('releasedate')[0].text.strip()
