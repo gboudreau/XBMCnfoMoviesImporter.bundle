@@ -18,7 +18,6 @@ CREDITS:
 """
 
 from datetime import datetime
-import htmlentitydefs
 import os
 import re
 
@@ -41,7 +40,6 @@ PERCENT_RATINGS = {
     'flixster',
 }
 
-UNESCAPE_REGEX = re.compile('&#?\w+;')
 NFO_TEXT_REGEX_1 = re.compile(
     r'&(?![A-Za-z]+[0-9]*;|#[0-9]+;|#x[0-9a-fA-F]+;)'
 )
@@ -68,35 +66,6 @@ class XBMCNFO(Agent.Movies):
         'com.plexapp.agents.podnapisi',
         'com.plexapp.agents.subzero'
     ]
-
-# ##### helper functions #####
-    def unescape(self, markup):
-        """
-        Removes HTML or XML character references and entities from a text.
-        Copyright:
-            http://effbot.org/zone/re-sub.htm October 28, 2006 | Fredrik Lundh
-        :param markup: The HTML (or XML) source text.
-        :return: The plain text, as a Unicode string, if necessary.
-        """
-        def fix_up(m):
-            text = m.group(0)
-            if text[:2] == '&#':
-                # character reference
-                try:
-                    if text[:3] == '&#x':
-                        return unichr(int(text[3:-1], 16))
-                    else:
-                        return unichr(int(text[2:-1]))
-                except ValueError:
-                    pass
-            else:
-                # named entity
-                try:
-                    text = unichr(htmlentitydefs.name2codepoint[text[1:-1]])
-                except KeyError:
-                    pass
-            return text  # leave as is
-        return UNESCAPE_REGEX.sub(fix_up, markup)
 
 # ##### search function #####
     def search(self, results, media, lang):
@@ -578,18 +547,18 @@ class XBMCNFO(Agent.Movies):
                                 )
                                 if Prefs['ratingspos'] == 'front':
                                     if Prefs['preserverating']:
-                                        metadata.summary = add_ratings_string[3:] + self.unescape(' &#9733;\n\n') + metadata.summary
+                                        metadata.summary = add_ratings_string[3:] + unescape(' &#9733;\n\n') + metadata.summary
                                     else:
-                                        metadata.summary = self.unescape('&#9733; ') + add_ratings_string[3:] + self.unescape(' &#9733;\n\n') + metadata.summary
+                                        metadata.summary = unescape('&#9733; ') + add_ratings_string[3:] + unescape(' &#9733;\n\n') + metadata.summary
                                 else:
-                                    metadata.summary = metadata.summary + self.unescape('\n\n&#9733; ') + add_ratings_string[3:] + self.unescape(' &#9733;')
+                                    metadata.summary = metadata.summary + unescape('\n\n&#9733; ') + add_ratings_string[3:] + unescape(' &#9733;')
                             else:
                                 log.debug('Additional ratings empty or malformed!')
                 if Prefs['preserverating']:
                     log.debug('Putting .nfo rating in front of summary!')
                     if not nfo_rating:
                         nfo_rating = 0.0
-                    metadata.summary = self.unescape(str(Prefs['beforerating'])) + '{:.1f}'.format(nfo_rating) + self.unescape(str(Prefs['afterrating'])) + metadata.summary
+                    metadata.summary = unescape(str(Prefs['beforerating'])) + '{:.1f}'.format(nfo_rating) + unescape(str(Prefs['afterrating'])) + metadata.summary
                     metadata.rating = nfo_rating
                 else:
                     metadata.rating = nfo_rating
@@ -936,3 +905,48 @@ def remove_empty_tags(document):
         tags=sorted(set(empty_tags)) or ''
     ))
     return document
+
+
+import sys
+
+if sys.version_info < (3, 0):
+    from htmlentitydefs import name2codepoint
+else:
+    from html.entities import name2codepoint
+    unichr = chr  # chr is already unicode
+
+
+UNESCAPE_REGEX = re.compile('&#?\w+;')
+
+
+def unescape(markup):
+    """
+    Removes HTML or XML character references and entities from a text.
+    Copyright:
+        http://effbot.org/zone/re-sub.htm October 28, 2006 | Fredrik Lundh
+    :param markup: The HTML (or XML) source text.
+    :return: The plain text, as a Unicode string, if necessary.
+    """
+
+    def fix_up(match):
+        """
+        Convert a match from a character reference or named entity to unicode.
+
+        :param match:  A regex match to attempt to convert to unicode
+        :return: unescaped character or original text
+        """
+        element = match.group(0)
+        if element.startswith('&#'):  # character reference
+            start, base = (3, 16) if element.startswith('&#x') else (2, 10)
+            try:
+                return unichr(int(element[start:-1], base))
+            except ValueError:
+                pass
+        else:  # named entity
+            try:
+                element = unichr(name2codepoint[element[1:-1]])
+            except KeyError:
+                pass
+        return element  # leave as is
+
+    return UNESCAPE_REGEX.sub(fix_up, markup)
