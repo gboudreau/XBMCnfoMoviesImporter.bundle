@@ -20,7 +20,7 @@ CREDITS:
 import os
 import re
 import time
-import datetime
+from datetime import datetime
 import re
 import htmlentitydefs
 from dateutil.parser import parse
@@ -473,8 +473,8 @@ class XBMCNFO(Agent.Movies):
                 try:
                     if not release_date:
                         log.debug('Fallback to year tag instead...')
-                        release_date = time.strptime(str(metadata.year) + '-01-01', '%Y-%m-%d')
-                        metadata.originally_available_at = datetime.datetime.fromtimestamp(time.mktime(release_date)).date()
+                        release_date = datetime(int(metadata.year), 1, 1).date()
+                        metadata.originally_available_at = release_date
                     else:
                         log.debug('Setting release date...')
                         metadata.originally_available_at = release_date
