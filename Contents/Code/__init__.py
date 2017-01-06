@@ -17,12 +17,11 @@ CREDITS:
     PEP 8 and refactoring: ......... Labrys
 """
 
+from datetime import datetime
+import htmlentitydefs
 import os
 import re
-import time
-import datetime
-import re
-import htmlentitydefs
+
 from dateutil.parser import parse
 
 COUNTRY_CODES = {
@@ -427,9 +426,9 @@ class XBMCNFO(Agent.Movies):
                 except:
                     pass
                 # Premiere
+                release_string = None
+                release_date = None
                 try:
-                    release_string = None
-                    release_date = None
                     try:
                         log.debug('Reading releasedate tag...')
                         release_string = nfo_xml.xpath('releasedate')[0].text.strip()
@@ -473,8 +472,8 @@ class XBMCNFO(Agent.Movies):
                 try:
                     if not release_date:
                         log.debug('Fallback to year tag instead...')
-                        release_date = time.strptime(str(metadata.year) + '-01-01', '%Y-%m-%d')
-                        metadata.originally_available_at = datetime.datetime.fromtimestamp(time.mktime(release_date)).date()
+                        release_date = datetime(int(metadata.year), 1, 1).date()
+                        metadata.originally_available_at = release_date
                     else:
                         log.debug('Setting release date...')
                         metadata.originally_available_at = release_date
@@ -762,16 +761,15 @@ class XBMCNFO(Agent.Movies):
                 except:
                     log.info('Duration: -')
                 log.info('Actors:')
-                try:
-                    [log.info('\t{actor.name} > {actor.role}'.format(actor=actor)
-                              for actor in metadata.roles)]
-                except:
+                for actor in metadata.roles:
                     try:
-                        [log.info('\t{actor.name}'.format(actor=actor)
-                                  for actor in metadata.roles)]
+                        log.info('\t{actor.name} > {actor.role}'.format(actor=actor))
                     except:
-                        log.info('\t-')
-                log.info('---------------------')
+                        try:
+                            log.info('\t{actor.name}'.format(actor=actor))
+                        except:
+                            log.info('\t-')
+                    log.info('---------------------')
             else:
                 log.info('ERROR: No <movie> tag in {nfo}.'
                          ' Aborting!'.format(nfo=nfo_file))
@@ -916,7 +914,7 @@ def remove_empty_tags(document):
     """
     empty_tags = []
     for xml_tag in document.iter('*'):
-        if not len(xml_tag) or not (xml_tag.text and xml_tag.text.strip()):
+        if not(len(xml_tag) or (xml_tag.text and xml_tag.text.strip())):
                 empty_tags.append(xml_tag.tag)
                 xml_tag.getparent().remove(xml_tag)
     log.debug('Empty XMLTags removed: {number} {tags}'.format(
