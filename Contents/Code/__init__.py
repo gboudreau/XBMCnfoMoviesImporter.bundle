@@ -103,10 +103,13 @@ class XBMCNFO(Agent.Movies):
         log.debug('++++++++++++++++++++++++')
         log.debug('Entering search function')
         log.debug('++++++++++++++++++++++++')
+
         log.info('{plugin} Version: {number}'.format(
             plugin=self.name, number=self.ver))
+
         path1 = media.items[0].parts[0].file
         log.debug('media file: {name}'.format(name=path1))
+
         folder_path = os.path.dirname(path1)
         log.debug('folder path: {name}'.format(name=folder_path))
 
@@ -115,15 +118,17 @@ class XBMCNFO(Agent.Movies):
         # Movie name from folder
         movie_name = get_movie_name_from_folder(folder_path, False)
 
-        nfo_names = []
-        # Eden / Frodo
-        nfo_names.append(get_related_file(path1, '.nfo'))
-        nfo_names.append('{movie}.nfo'.format(movie=movie_name_with_year))
-        nfo_names.append('{movie}.nfo'.format(movie=movie_name))
-        # VIDEO_TS
-        nfo_names.append(os.path.join(folder_path, 'video_ts.nfo'))
-        # movie.nfo (e.g. FilmInfo!Organizer users)
-        nfo_names.append(os.path.join(folder_path, 'movie.nfo'))
+        nfo_names = [
+            # Eden / Frodo
+            get_related_file(path1, '.nfo'),
+            '{movie}.nfo'.format(movie=movie_name_with_year),
+            '{movie}.nfo'.format(movie=movie_name),
+            # VIDEO_TS
+            os.path.join(folder_path, 'video_ts.nfo'),
+            # movie.nfo (e.g. FilmInfo!Organizer users)
+            os.path.join(folder_path, 'movie.nfo'),
+        ]
+
         # last resort - use first found .nfo
         nfo_files = [f for f in os.listdir(folder_path) if f.endswith('.nfo')]
         if nfo_files:
@@ -214,10 +219,13 @@ class XBMCNFO(Agent.Movies):
         log.debug('++++++++++++++++++++++++')
         log.debug('Entering update function')
         log.debug('++++++++++++++++++++++++')
+
         log.info('{plugin} Version: {number}'.format(
             plugin=self.name, number=self.ver))
+
         path1 = media.items[0].parts[0].file
         log.debug('media file: {name}'.format(name=path1))
+
         folder_path = os.path.dirname(path1)
         log.debug('folder path: {name}'.format(name=folder_path))
 
@@ -227,6 +235,7 @@ class XBMCNFO(Agent.Movies):
 
         # Movie name with year from folder
         movie_name_with_year = get_movie_name_from_folder(folder_path, True)
+
         # Movie name from folder
         movie_name = get_movie_name_from_folder(folder_path, False)
 
@@ -296,15 +305,17 @@ class XBMCNFO(Agent.Movies):
                 for key in metadata.art.keys():
                     del metadata.art[key]
 
-        nfo_names = []
-        # Eden / Frodo
-        nfo_names.append(get_related_file(path1, '.nfo'))
-        nfo_names.append('{movie}.nfo'.format(movie=movie_name_with_year))
-        nfo_names.append('{movie}.nfo'.format(movie=movie_name))
-        # VIDEO_TS
-        nfo_names.append(os.path.join(folder_path, 'video_ts.nfo'))
-        # movie.nfo (e.g. FilmInfo!Organizer users)
-        nfo_names.append(os.path.join(folder_path, 'movie.nfo'))
+        nfo_names = [
+            # Eden / Frodo
+            get_related_file(path1, '.nfo'),
+            '{movie}.nfo'.format(movie=movie_name_with_year),
+            '{movie}.nfo'.format(movie=movie_name),
+            # VIDEO_TS
+            os.path.join(folder_path, 'video_ts.nfo'),
+            # movie.nfo (e.g. FilmInfo!Organizer users)
+            os.path.join(folder_path, 'movie.nfo'),
+        ]
+
         # last resort - use first found .nfo
         nfo_files = [f for f in os.listdir(folder_path) if f.endswith('.nfo')]
         if nfo_files:
@@ -315,14 +326,17 @@ class XBMCNFO(Agent.Movies):
 
         if nfo_file:
             nfo_text = Core.storage.load(nfo_file)
+
             # work around failing XML parses for things with &'s in
             # them. This may need to go farther than just &'s....
             nfo_text = NFO_TEXT_REGEX_1.sub(r'&amp;', nfo_text)
+
             # remove empty xml tags from nfo
             log.debug('Removing empty XML tags from movies nfo...')
             nfo_text = NFO_TEXT_REGEX_2.sub('', nfo_text)
 
             nfo_text_lower = nfo_text.lower()
+
             if nfo_text_lower.count('<movie') > 0 and nfo_text_lower.count('</movie>') > 0:
                 # Remove URLs (or other stuff) at the end of the XML file
                 nfo_text = '{content}</movie>'.format(
