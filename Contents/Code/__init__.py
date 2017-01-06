@@ -762,16 +762,15 @@ class XBMCNFO(Agent.Movies):
                 except:
                     log.info('Duration: -')
                 log.info('Actors:')
-                try:
-                    [log.info('\t{actor.name} > {actor.role}'.format(actor=actor)
-                              for actor in metadata.roles)]
-                except:
+                for actor in metadata.roles:
                     try:
-                        [log.info('\t{actor.name}'.format(actor=actor)
-                                  for actor in metadata.roles)]
+                        log.info('\t{actor.name} > {actor.role}'.format(actor=actor))
                     except:
-                        log.info('\t-')
-                log.info('---------------------')
+                        try:
+                            log.info('\t{actor.name}'.format(actor=actor))
+                        except:
+                            log.info('\t-')
+                    log.info('---------------------')
             else:
                 log.info('ERROR: No <movie> tag in {nfo}.'
                          ' Aborting!'.format(nfo=nfo_file))
