@@ -17,12 +17,11 @@ CREDITS:
     PEP 8 and refactoring: ......... Labrys
 """
 
+from datetime import datetime
+import htmlentitydefs
 import os
 import re
-import time
-from datetime import datetime
-import re
-import htmlentitydefs
+
 from dateutil.parser import parse
 
 COUNTRY_CODES = {
