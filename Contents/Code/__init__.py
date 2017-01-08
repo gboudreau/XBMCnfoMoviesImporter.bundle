@@ -233,12 +233,13 @@ class XBMCNFO(PlexAgent):
         movie_name = get_movie_name_from_folder(folder_path, False)
 
         if not preferences['localmediaagent']:
-            poster_names = []
-            # Frodo
-            poster_names.append(get_related_file(path1, '-poster.jpg'))
-            poster_names.append('{movie}-poster.jpg'.format(movie=movie_name_with_year))
-            poster_names.append('{movie}-poster.jpg'.format(movie=movie_name))
-            poster_names.append(os.path.join(folder_path, 'poster.jpg'))
+            poster_names = [
+                # Frodo
+                get_related_file(path1, '-poster.jpg'),
+                '{movie}-poster.jpg'.format(movie=movie_name_with_year),
+                '{movie}-poster.jpg'.format(movie=movie_name),
+                os.path.join(folder_path, 'poster.jpg'),
+            ]
             if is_dvd:
                 poster_names.append(os.path.join(folder_path_dvd, 'poster.jpg'))
             # Eden
@@ -267,12 +268,13 @@ class XBMCNFO(PlexAgent):
                 for key in metadata.posters.keys():
                     del metadata.posters[key]
 
-            fanart_names = []
-            # Eden / Frodo
-            fanart_names.append(get_related_file(path1, '-fanart.jpg'))
-            fanart_names.append('{movie}-fanart.jpg'.format(movie=movie_name_with_year))
-            fanart_names.append('{movie}-fanart.jpg'.format(movie=movie_name))
-            fanart_names.append(os.path.join(folder_path, 'fanart.jpg'))
+            fanart_names = [
+                # Eden / Frodo
+                get_related_file(path1, '-fanart.jpg'),
+                '{movie}-fanart.jpg'.format(movie=movie_name_with_year),
+                '{movie}-fanart.jpg'.format(movie=movie_name),
+                os.path.join(folder_path, 'fanart.jpg'),
+            ]
             if is_dvd:
                 fanart_names.append(os.path.join(folder_path_dvd, 'fanart.jpg'))
             # Others
