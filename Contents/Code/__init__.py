@@ -209,6 +209,11 @@ class XBMCNFO(PlexAgent):
         log.debug('Entering update function')
         log.debug('++++++++++++++++++++++++')
 
+        poster_data = None
+        poster_filename = None
+        fanart_data = None
+        fanart_filename = None
+
         log.info('{plugin} Version: {number}'.format(
             plugin=self.name, number=self.ver))
 
@@ -219,8 +224,7 @@ class XBMCNFO(PlexAgent):
         log.debug('folder path: {name}'.format(name=folder_path))
 
         is_dvd = os.path.basename(folder_path).upper() == 'VIDEO_TS'
-        if is_dvd:
-            folder_path_dvd = os.path.dirname(folder_path)
+        folder_path_dvd = os.path.dirname(folder_path) if is_dvd else None
 
         # Movie name with year from folder
         movie_name_with_year = get_movie_name_from_folder(folder_path, True)
@@ -229,8 +233,6 @@ class XBMCNFO(PlexAgent):
         movie_name = get_movie_name_from_folder(folder_path, False)
 
         if not preferences['localmediaagent']:
-            poster_data = None
-            poster_filename = ''
             poster_names = []
             # Frodo
             poster_names.append(get_related_file(path1, '-poster.jpg'))
@@ -265,8 +267,6 @@ class XBMCNFO(PlexAgent):
                 for key in metadata.posters.keys():
                     del metadata.posters[key]
 
-            fanart_data = None
-            fanart_filename = ''
             fanart_names = []
             # Eden / Frodo
             fanart_names.append(get_related_file(path1, '-fanart.jpg'))
@@ -473,7 +473,7 @@ class XBMCNFO(PlexAgent):
                                 metadata.year = int(dt.strftime('%Y'))
                                 log.debug('Set year tag from premiere: {year}'.format(year=metadata.year))
                         except:
-                            log.debug('Couldn\'t parse premiere: {release}'.format(release=air_string))
+                            log.debug('Couldn\'t parse premiere: {release}'.format(release=release_string))
                             pass
                 except:
                     log.exception('Exception parsing release date')
@@ -518,8 +518,8 @@ class XBMCNFO(PlexAgent):
                     metadata.summary = ''
                     pass
                 # Ratings
+                nfo_rating = None
                 try:
-                    nfo_rating = None
                     nfo_rating = round(float(nfo_xml.xpath('rating')[0].text.replace(',', '.')), 1)
                     log.debug('Series Rating found: ' + str(nfo_rating))
                 except:
@@ -543,6 +543,7 @@ class XBMCNFO(PlexAgent):
                     if not allowed_ratings:
                         allowed_ratings = ''
                     add_ratings_string = ''
+                    add_ratings = None
                     try:
                         add_ratings = nfo_xml.xpath('ratings')
                         log.debug('Trying to read additional ratings from .nfo.')
