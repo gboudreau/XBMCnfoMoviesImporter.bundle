@@ -99,9 +99,14 @@ class XBMCNFO(Agent.Movies):
         ]
 
         # last resort - use first found .nfo
-        nfo_files = [f for f in os.listdir(folder_path) if f.endswith('.nfo')]
-        if nfo_files:
-            nfo_names.append(os.path.join(folder_path, nfo_files[0]))
+        nfo_files = (f for f in os.listdir(folder_path) if f.endswith('.nfo'))
+
+        try:
+            first_nfo = nfo_files.next()
+        except StopIteration:
+            log.debug('No NFO found in {path!r}'.format(path=folder_path))
+        else:
+            nfo_names.append(os.path.join(folder_path, first_nfo))
 
         # check possible .nfo file locations
         nfo_file = check_file_paths(nfo_names, '.nfo')
@@ -286,9 +291,14 @@ class XBMCNFO(Agent.Movies):
         ]
 
         # last resort - use first found .nfo
-        nfo_files = [f for f in os.listdir(folder_path) if f.endswith('.nfo')]
-        if nfo_files:
-            nfo_names.append(os.path.join(folder_path, nfo_files[0]))
+        nfo_files = (f for f in os.listdir(folder_path) if f.endswith('.nfo'))
+
+        try:
+            first_nfo = nfo_files.next()
+        except StopIteration:
+            log.debug('No NFO file found in {path!r}'.format(path=folder_path))
+        else:
+            nfo_names.append(os.path.join(folder_path, first_nfo))
 
         # check possible .nfo file locations
         nfo_file = check_file_paths(nfo_names, '.nfo')
