@@ -18,11 +18,25 @@ CREDITS:
 """
 
 from datetime import datetime
-import htmlentitydefs
 import os
 import re
-
+import sys
 from dateutil.parser import parse
+
+if sys.version_info < (3, 0):
+    from htmlentitydefs import name2codepoint
+else:
+    from html.entities import name2codepoint
+    unichr = chr  # chr is already unicode
+
+# PLEX API
+preferences = Prefs
+element_from_string = XML.ElementFromString
+load_file = Core.storage.load
+PlexAgent = Agent.Movies
+MediaProxy = Proxy.Media
+Metadata = MetadataSearchResult
+Trailer = TrailerObject
 
 COUNTRY_CODES = {
     'Australia': 'Australia,AU',
@@ -41,7 +55,6 @@ PERCENT_RATINGS = {
     'flixster',
 }
 
-UNESCAPE_REGEX = re.compile('&#?\w+;')
 NFO_TEXT_REGEX_1 = re.compile(
     r'&(?![A-Za-z]+[0-9]*;|#[0-9]+;|#x[0-9a-fA-F]+;)'
 )
@@ -52,7 +65,7 @@ RATING_REGEX_1 = re.compile(
 RATING_REGEX_2 = re.compile(r'\s*\(.*?\)')
 
 
-class XBMCNFO(Agent.Movies):
+class XBMCNFO(PlexAgent):
     """
     A Plex Metadata Agent for Movies.
 
@@ -69,44 +82,18 @@ class XBMCNFO(Agent.Movies):
         'com.plexapp.agents.subzero'
     ]
 
-# ##### helper functions #####
-    def unescape(self, markup):
-        """
-        Removes HTML or XML character references and entities from a text.
-        Copyright:
-            http://effbot.org/zone/re-sub.htm October 28, 2006 | Fredrik Lundh
-        :param markup: The HTML (or XML) source text.
-        :return: The plain text, as a Unicode string, if necessary.
-        """
-        def fix_up(m):
-            text = m.group(0)
-            if text[:2] == '&#':
-                # character reference
-                try:
-                    if text[:3] == '&#x':
-                        return unichr(int(text[3:-1], 16))
-                    else:
-                        return unichr(int(text[2:-1]))
-                except ValueError:
-                    pass
-            else:
-                # named entity
-                try:
-                    text = unichr(htmlentitydefs.name2codepoint[text[1:-1]])
-                except KeyError:
-                    pass
-            return text  # leave as is
-        return UNESCAPE_REGEX.sub(fix_up, markup)
-
 # ##### search function #####
     def search(self, results, media, lang):
         log.debug('++++++++++++++++++++++++')
         log.debug('Entering search function')
         log.debug('++++++++++++++++++++++++')
+
         log.info('{plugin} Version: {number}'.format(
             plugin=self.name, number=self.ver))
+
         path1 = media.items[0].parts[0].file
         log.debug('media file: {name}'.format(name=path1))
+
         folder_path = os.path.dirname(path1)
         log.debug('folder path: {name}'.format(name=folder_path))
 
@@ -115,25 +102,32 @@ class XBMCNFO(Agent.Movies):
         # Movie name from folder
         movie_name = get_movie_name_from_folder(folder_path, False)
 
-        nfo_names = []
-        # Eden / Frodo
-        nfo_names.append(get_related_file(path1, '.nfo'))
-        nfo_names.append('{movie}.nfo'.format(movie=movie_name_with_year))
-        nfo_names.append('{movie}.nfo'.format(movie=movie_name))
-        # VIDEO_TS
-        nfo_names.append(os.path.join(folder_path, 'video_ts.nfo'))
-        # movie.nfo (e.g. FilmInfo!Organizer users)
-        nfo_names.append(os.path.join(folder_path, 'movie.nfo'))
+        nfo_names = [
+            # Eden / Frodo
+            get_related_file(path1, '.nfo'),
+            '{movie}.nfo'.format(movie=movie_name_with_year),
+            '{movie}.nfo'.format(movie=movie_name),
+            # VIDEO_TS
+            os.path.join(folder_path, 'video_ts.nfo'),
+            # movie.nfo (e.g. FilmInfo!Organizer users)
+            os.path.join(folder_path, 'movie.nfo'),
+        ]
+
         # last resort - use first found .nfo
-        nfo_files = [f for f in os.listdir(folder_path) if f.endswith('.nfo')]
-        if nfo_files:
-            nfo_names.append(os.path.join(folder_path, nfo_files[0]))
+        nfo_files = (f for f in os.listdir(folder_path) if f.endswith('.nfo'))
+
+        try:
+            first_nfo = nfo_files.next()
+        except StopIteration:
+            log.debug('No NFO found in {path!r}'.format(path=folder_path))
+        else:
+            nfo_names.append(os.path.join(folder_path, first_nfo))
 
         # check possible .nfo file locations
         nfo_file = check_file_paths(nfo_names, '.nfo')
 
         if nfo_file:
-            nfo_text = Core.storage.load(nfo_file)
+            nfo_text = load_file(nfo_file)
             # work around failing XML parses for things with &'s in
             # them. This may need to go farther than just &'s....
             nfo_text = NFO_TEXT_REGEX_1.sub('&amp;', nfo_text)
@@ -150,7 +144,7 @@ class XBMCNFO(Agent.Movies):
 
                 # likely an xbmc nfo file
                 try:
-                    nfo_xml = XML.ElementFromString(nfo_text).xpath('//movie')[0]
+                    nfo_xml = element_from_string(nfo_text).xpath('//movie')[0]
                 except:
                     log.debug('ERROR: Cant parse XML in {nfo}.'
                               ' Aborting!'.format(nfo=nfo_file))
@@ -196,7 +190,7 @@ class XBMCNFO(Agent.Movies):
                     media.id = id
                     log.debug('ID generated: {id}'.format(id=media.id))
 
-                results.Append(MetadataSearchResult(id=media.id, name=media.name, year=media.year, lang=lang, score=100))
+                results.Append(Metadata(id=media.id, name=media.name, year=media.year, lang=lang, score=100))
                 try:
                     log.info('Found movie information in NFO file:'
                              ' title = {nfo.name},'
@@ -214,31 +208,38 @@ class XBMCNFO(Agent.Movies):
         log.debug('++++++++++++++++++++++++')
         log.debug('Entering update function')
         log.debug('++++++++++++++++++++++++')
+
+        poster_data = None
+        poster_filename = None
+        fanart_data = None
+        fanart_filename = None
+
         log.info('{plugin} Version: {number}'.format(
             plugin=self.name, number=self.ver))
+
         path1 = media.items[0].parts[0].file
         log.debug('media file: {name}'.format(name=path1))
+
         folder_path = os.path.dirname(path1)
         log.debug('folder path: {name}'.format(name=folder_path))
 
         is_dvd = os.path.basename(folder_path).upper() == 'VIDEO_TS'
-        if is_dvd:
-            folder_path_dvd = os.path.dirname(folder_path)
+        folder_path_dvd = os.path.dirname(folder_path) if is_dvd else None
 
         # Movie name with year from folder
         movie_name_with_year = get_movie_name_from_folder(folder_path, True)
+
         # Movie name from folder
         movie_name = get_movie_name_from_folder(folder_path, False)
 
-        if not Prefs['localmediaagent']:
-            poster_data = None
-            poster_filename = ''
-            poster_names = []
-            # Frodo
-            poster_names.append(get_related_file(path1, '-poster.jpg'))
-            poster_names.append('{movie}-poster.jpg'.format(movie=movie_name_with_year))
-            poster_names.append('{movie}-poster.jpg'.format(movie=movie_name))
-            poster_names.append(os.path.join(folder_path, 'poster.jpg'))
+        if not preferences['localmediaagent']:
+            poster_names = [
+                # Frodo
+                get_related_file(path1, '-poster.jpg'),
+                '{movie}-poster.jpg'.format(movie=movie_name_with_year),
+                '{movie}-poster.jpg'.format(movie=movie_name),
+                os.path.join(folder_path, 'poster.jpg'),
+            ]
             if is_dvd:
                 poster_names.append(os.path.join(folder_path_dvd, 'poster.jpg'))
             # Eden
@@ -263,18 +264,17 @@ class XBMCNFO(Agent.Movies):
             poster_filename = check_file_paths(poster_names, 'poster')
 
             if poster_filename:
-                poster_data = Core.storage.load(poster_filename)
+                poster_data = load_file(poster_filename)
                 for key in metadata.posters.keys():
                     del metadata.posters[key]
 
-            fanart_data = None
-            fanart_filename = ''
-            fanart_names = []
-            # Eden / Frodo
-            fanart_names.append(get_related_file(path1, '-fanart.jpg'))
-            fanart_names.append('{movie}-fanart.jpg'.format(movie=movie_name_with_year))
-            fanart_names.append('{movie}-fanart.jpg'.format(movie=movie_name))
-            fanart_names.append(os.path.join(folder_path, 'fanart.jpg'))
+            fanart_names = [
+                # Eden / Frodo
+                get_related_file(path1, '-fanart.jpg'),
+                '{movie}-fanart.jpg'.format(movie=movie_name_with_year),
+                '{movie}-fanart.jpg'.format(movie=movie_name),
+                os.path.join(folder_path, 'fanart.jpg'),
+            ]
             if is_dvd:
                 fanart_names.append(os.path.join(folder_path_dvd, 'fanart.jpg'))
             # Others
@@ -292,37 +292,47 @@ class XBMCNFO(Agent.Movies):
             fanart_filename = check_file_paths(fanart_names, 'fanart')
 
             if fanart_filename:
-                fanart_data = Core.storage.load(fanart_filename)
+                fanart_data = load_file(fanart_filename)
                 for key in metadata.art.keys():
                     del metadata.art[key]
 
-        nfo_names = []
-        # Eden / Frodo
-        nfo_names.append(get_related_file(path1, '.nfo'))
-        nfo_names.append('{movie}.nfo'.format(movie=movie_name_with_year))
-        nfo_names.append('{movie}.nfo'.format(movie=movie_name))
-        # VIDEO_TS
-        nfo_names.append(os.path.join(folder_path, 'video_ts.nfo'))
-        # movie.nfo (e.g. FilmInfo!Organizer users)
-        nfo_names.append(os.path.join(folder_path, 'movie.nfo'))
+        nfo_names = [
+            # Eden / Frodo
+            get_related_file(path1, '.nfo'),
+            '{movie}.nfo'.format(movie=movie_name_with_year),
+            '{movie}.nfo'.format(movie=movie_name),
+            # VIDEO_TS
+            os.path.join(folder_path, 'video_ts.nfo'),
+            # movie.nfo (e.g. FilmInfo!Organizer users)
+            os.path.join(folder_path, 'movie.nfo'),
+        ]
+
         # last resort - use first found .nfo
-        nfo_files = [f for f in os.listdir(folder_path) if f.endswith('.nfo')]
-        if nfo_files:
-            nfo_names.append(os.path.join(folder_path, nfo_files[0]))
+        nfo_files = (f for f in os.listdir(folder_path) if f.endswith('.nfo'))
+
+        try:
+            first_nfo = nfo_files.next()
+        except StopIteration:
+            log.debug('No NFO file found in {path!r}'.format(path=folder_path))
+        else:
+            nfo_names.append(os.path.join(folder_path, first_nfo))
 
         # check possible .nfo file locations
         nfo_file = check_file_paths(nfo_names, '.nfo')
 
         if nfo_file:
-            nfo_text = Core.storage.load(nfo_file)
+            nfo_text = load_file(nfo_file)
+
             # work around failing XML parses for things with &'s in
             # them. This may need to go farther than just &'s....
             nfo_text = NFO_TEXT_REGEX_1.sub(r'&amp;', nfo_text)
+
             # remove empty xml tags from nfo
             log.debug('Removing empty XML tags from movies nfo...')
             nfo_text = NFO_TEXT_REGEX_2.sub('', nfo_text)
 
             nfo_text_lower = nfo_text.lower()
+
             if nfo_text_lower.count('<movie') > 0 and nfo_text_lower.count('</movie>') > 0:
                 # Remove URLs (or other stuff) at the end of the XML file
                 nfo_text = '{content}</movie>'.format(
@@ -331,7 +341,7 @@ class XBMCNFO(Agent.Movies):
 
                 # likely an xbmc nfo file
                 try:
-                    nfo_xml = XML.ElementFromString(nfo_text).xpath('//movie')[0]
+                    nfo_xml = element_from_string(nfo_text).xpath('//movie')[0]
                 except:
                     log.debug('ERROR: Cant parse XML in {nfo}.'
                               ' Aborting!'.format(nfo=nfo_file))
@@ -397,11 +407,11 @@ class XBMCNFO(Agent.Movies):
                     log.debug('Content Rating(s): ' + str(content_rating))
                 except:
                     pass
-                if Prefs['country'] != '':
-                    cc = COUNTRY_CODES[Prefs['country']].split(',')
+                if preferences['country'] != '':
+                    cc = COUNTRY_CODES[preferences['country']].split(',')
                     log.debug(
                         'Country code from settings: {name}:{code}'.format(
-                            name=Prefs['country'], code=cc))
+                            name=preferences['country'], code=cc))
                     if cc[0] in content_rating:
                         if cc[1] == '':
                             metadata.content_rating = content_rating.get(cc[0])
@@ -454,7 +464,7 @@ class XBMCNFO(Agent.Movies):
                             pass
                     if release_string:
                         try:
-                            if Prefs['dayfirst']:
+                            if preferences['dayfirst']:
                                 dt = parse(release_string, dayfirst=True)
                             else:
                                 dt = parse(release_string)
@@ -465,7 +475,7 @@ class XBMCNFO(Agent.Movies):
                                 metadata.year = int(dt.strftime('%Y'))
                                 log.debug('Set year tag from premiere: {year}'.format(year=metadata.year))
                         except:
-                            log.debug('Couldn\'t parse premiere: {release}'.format(release=air_string))
+                            log.debug('Couldn\'t parse premiere: {release}'.format(release=release_string))
                             pass
                 except:
                     log.exception('Exception parsing release date')
@@ -487,7 +497,7 @@ class XBMCNFO(Agent.Movies):
                     pass
                 # Summary (Outline/Plot)
                 try:
-                    if Prefs['plot']:
+                    if preferences['plot']:
                         log.debug('User setting forces plot before outline...')
                         s_type_1 = 'plot'
                         s_type_2 = 'outline'
@@ -510,8 +520,8 @@ class XBMCNFO(Agent.Movies):
                     metadata.summary = ''
                     pass
                 # Ratings
+                nfo_rating = None
                 try:
-                    nfo_rating = None
                     nfo_rating = round(float(nfo_xml.xpath('rating')[0].text.replace(',', '.')), 1)
                     log.debug('Series Rating found: ' + str(nfo_rating))
                 except:
@@ -529,12 +539,13 @@ class XBMCNFO(Agent.Movies):
                             log.debug('Can\'t read rating from tvshow.nfo.')
                             nfo_rating = 0.0
                             pass
-                if Prefs['altratings']:
+                if preferences['altratings']:
                     log.debug('Searching for additional Ratings...')
-                    allowed_ratings = Prefs['ratings']
+                    allowed_ratings = preferences['ratings']
                     if not allowed_ratings:
                         allowed_ratings = ''
                     add_ratings_string = ''
+                    add_ratings = None
                     try:
                         add_ratings = nfo_xml.xpath('ratings')
                         log.debug('Trying to read additional ratings from .nfo.')
@@ -560,22 +571,22 @@ class XBMCNFO(Agent.Movies):
                                 log.debug(
                                     'Putting additional ratings at the'
                                     ' {position} of the summary!'.format(
-                                        position=Prefs['ratingspos'])
+                                        position=preferences['ratingspos'])
                                 )
-                                if Prefs['ratingspos'] == 'front':
-                                    if Prefs['preserverating']:
-                                        metadata.summary = add_ratings_string[3:] + self.unescape(' &#9733;\n\n') + metadata.summary
+                                if preferences['ratingspos'] == 'front':
+                                    if preferences['preserverating']:
+                                        metadata.summary = add_ratings_string[3:] + unescape(' &#9733;\n\n') + metadata.summary
                                     else:
-                                        metadata.summary = self.unescape('&#9733; ') + add_ratings_string[3:] + self.unescape(' &#9733;\n\n') + metadata.summary
+                                        metadata.summary = unescape('&#9733; ') + add_ratings_string[3:] + unescape(' &#9733;\n\n') + metadata.summary
                                 else:
-                                    metadata.summary = metadata.summary + self.unescape('\n\n&#9733; ') + add_ratings_string[3:] + self.unescape(' &#9733;')
+                                    metadata.summary = metadata.summary + unescape('\n\n&#9733; ') + add_ratings_string[3:] + unescape(' &#9733;')
                             else:
                                 log.debug('Additional ratings empty or malformed!')
-                if Prefs['preserverating']:
+                if preferences['preserverating']:
                     log.debug('Putting .nfo rating in front of summary!')
                     if not nfo_rating:
                         nfo_rating = 0.0
-                    metadata.summary = self.unescape(str(Prefs['beforerating'])) + '{:.1f}'.format(nfo_rating) + self.unescape(str(Prefs['afterrating'])) + metadata.summary
+                    metadata.summary = unescape(str(preferences['beforerating'])) + '{:.1f}'.format(nfo_rating) + unescape(str(preferences['afterrating'])) + metadata.summary
                     metadata.rating = nfo_rating
                 else:
                     metadata.rating = nfo_rating
@@ -623,7 +634,7 @@ class XBMCNFO(Agent.Movies):
                 # Duration
                 try:
                     log.debug('Trying to read <durationinseconds> tag from .nfo file...')
-                    file_info_xml = XML.ElementFromString(nfo_text).xpath('fileinfo')[0]
+                    file_info_xml = element_from_string(nfo_text).xpath('fileinfo')[0]
                     stream_details_xml = file_info_xml.xpath('streamdetails')[0]
                     video_xml = stream_details_xml.xpath('video')[0]
                     runtime = video_xml.xpath('durationinseconds')[0].text.strip()
@@ -653,21 +664,21 @@ class XBMCNFO(Agent.Movies):
                     except:
                         pass
 
-                if not Prefs['localmediaagent']:
+                if not preferences['localmediaagent']:
                     # Remote posters and fanarts are disabled for now; having
                     # them seems to stop the local artworks from being used.
                     # (remote) posters
                     # (local) poster
                     if poster_data:
-                        metadata.posters[poster_filename] = Proxy.Media(poster_data)
+                        metadata.posters[poster_filename] = MediaProxy(poster_data)
                     # (remote) fanart
                     # (local) fanart
                     if fanart_data:
-                        metadata.art[fanart_filename] = Proxy.Media(fanart_data)
+                        metadata.art[fanart_filename] = MediaProxy(fanart_data)
 
                     # Trailer Support
                     # Eden / Frodo
-                    if Prefs['trailer']:
+                    if preferences['trailer']:
                         for f in os.listdir(folder_path):
                             (fn, ext) = os.path.splitext(f)
                             try:
@@ -677,7 +688,7 @@ class XBMCNFO(Agent.Movies):
                                 if fn == 'trailer' or f.startswith('movie-trailer'):
                                         title = metadata.title
                                 if title != '':
-                                    metadata.extras.add(TrailerObject(title=title, file=os.path.join(folder_path, f)))
+                                    metadata.extras.add(Trailer(title=title, file=os.path.join(folder_path, f)))
                                     log.debug('Found trailer file ' + os.path.join(folder_path, f))
                                     log.debug('Trailer title:' + title)
                             except:
@@ -804,7 +815,7 @@ class XBMCLogAdapter(PlexLogAdapter):
         """
         Selective logging of debug message based on preference.
         """
-        if Prefs['debug']:
+        if preferences['debug']:
             Log.Debug(*args, **kwargs)
 
 log = XBMCLogAdapter
@@ -922,3 +933,39 @@ def remove_empty_tags(document):
         tags=sorted(set(empty_tags)) or ''
     ))
     return document
+
+
+UNESCAPE_REGEX = re.compile('&#?\w+;')
+
+
+def unescape(markup):
+    """
+    Removes HTML or XML character references and entities from a text.
+    Copyright:
+        http://effbot.org/zone/re-sub.htm October 28, 2006 | Fredrik Lundh
+    :param markup: The HTML (or XML) source text.
+    :return: The plain text, as a Unicode string, if necessary.
+    """
+
+    def fix_up(match):
+        """
+        Convert a match from a character reference or named entity to unicode.
+
+        :param match:  A regex match to attempt to convert to unicode
+        :return: unescaped character or original text
+        """
+        element = match.group(0)
+        if element.startswith('&#'):  # character reference
+            start, base = (3, 16) if element.startswith('&#x') else (2, 10)
+            try:
+                return unichr(int(element[start:-1], base))
+            except ValueError:
+                pass
+        else:  # named entity
+            try:
+                element = unichr(name2codepoint[element[1:-1]])
+            except KeyError:
+                pass
+        return element  # leave as is
+
+    return UNESCAPE_REGEX.sub(fix_up, markup)
