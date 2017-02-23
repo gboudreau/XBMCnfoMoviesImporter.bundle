@@ -82,6 +82,11 @@ class XBMCNFO(PlexAgent):
         'com.plexapp.agents.subzero'
     ]
 
+    contributes_to = [
+        'com.plexapp.agents.themoviedb',
+        'com.plexapp.agents.imdb'
+    ]
+
 # ##### search function #####
     def search(self, results, media, lang):
         log.debug('++++++++++++++++++++++++')
