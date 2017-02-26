@@ -630,11 +630,33 @@ class XBMCNFO(PlexAgent):
                 except:
                     pass
                 # Collections (Set)
+                setname = None
                 try:
-                    sets = nfo_xml.xpath('set')
                     metadata.collections.clear()
-                    [metadata.collections.add(s.strip()) for setXML in sets for s in setXML.text.split('/')]
+                    # trying enhanced set tag name first
+                    setname = nfo_xml.xpath("set")[0].xpath("name")[0].text
+                    log.debug('Enhanced set tag found: ' + setname)
                 except:
+                    log.debug('No enhanced set tag found...')
+                    pass
+                try:
+                    # fallback to flat style set tag
+                    if not setname:
+                        setname = nfo_xml.xpath("set")[0].text
+                        log.debug('Set tag found: ' + setname)
+                except:
+                    log.debug('No set tag found...')
+                    pass
+                if setname:
+                    metadata.collections.add (setname)
+                    log.debug('Added Collection from Set tag.')
+                # Collections (Tags)
+                try:
+                    tags = nfo_xml.xpath('tag')
+                    [metadata.collections.add(t.strip()) for tag_xml in tags for t in tag_xml.text.split('/')]
+                    log.debug('Added Collection(s) from tags.')
+                except:
+                    log.debug('Error adding Collection(s) from tags.')
                     pass
                 # Duration
                 try:
