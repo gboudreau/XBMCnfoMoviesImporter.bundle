@@ -634,7 +634,7 @@ class XBMCNFO(PlexAgent):
                 try:
                     metadata.collections.clear()
                     # trying enhanced set tag name first
-                    setname = nfo_xml.xpath("set")[0].xpath("name")[0].text
+                    setname = nfo_xml.xpath('set')[0].xpath('name')[0].text
                     log.debug('Enhanced set tag found: ' + setname)
                 except:
                     log.debug('No enhanced set tag found...')
@@ -642,7 +642,7 @@ class XBMCNFO(PlexAgent):
                 try:
                     # fallback to flat style set tag
                     if not setname:
-                        setname = nfo_xml.xpath("set")[0].text
+                        setname = nfo_xml.xpath('set')[0].text
                         log.debug('Set tag found: ' + setname)
                 except:
                     log.debug('No set tag found...')
