@@ -272,6 +272,8 @@ class XBMCNFO(PlexAgent):
                 poster_data = load_file(poster_filename)
                 for key in metadata.posters.keys():
                     del metadata.posters[key]
+                metadata.posters[poster_filename] = MediaProxy(poster_data)
+
 
             fanart_names = [
                 # Eden / Frodo
@@ -300,6 +302,7 @@ class XBMCNFO(PlexAgent):
                 fanart_data = load_file(fanart_filename)
                 for key in metadata.art.keys():
                     del metadata.art[key]
+                metadata.art[fanart_filename] = MediaProxy(fanart_data)
 
         nfo_names = [
             # Eden / Frodo
@@ -692,17 +695,6 @@ class XBMCNFO(PlexAgent):
                         pass
 
                 if not preferences['localmediaagent']:
-                    # Remote posters and fanarts are disabled for now; having
-                    # them seems to stop the local artworks from being used.
-                    # (remote) posters
-                    # (local) poster
-                    if poster_data:
-                        metadata.posters[poster_filename] = MediaProxy(poster_data)
-                    # (remote) fanart
-                    # (local) fanart
-                    if fanart_data:
-                        metadata.art[fanart_filename] = MediaProxy(fanart_data)
-
                     # Trailer Support
                     # Eden / Frodo
                     if preferences['trailer']:
