@@ -528,7 +528,7 @@ class XBMCNFO(PlexAgent):
                 nfo_rating = None
                 try:
                     nfo_rating = round(float(nfo_xml.xpath('rating')[0].text.replace(',', '.')), 1)
-                    log.debug('Series Rating found: ' + str(nfo_rating))
+                    log.debug('Movie Rating found: ' + str(nfo_rating))
                 except:
                     pass
                 if not nfo_rating:
@@ -538,10 +538,10 @@ class XBMCNFO(PlexAgent):
                         try:
                             rating = ratings.xpath('rating')[0]
                             nfo_rating = round(float(rating.xpath('value')[0].text.replace(',', '.')), 1)
-                            log.debug('Krypton style series rating found:'
+                            log.debug('Krypton style movie rating found:'
                                       ' {rating}'.format(rating=nfo_rating))
                         except:
-                            log.debug('Can\'t read rating from tvshow.nfo.')
+                            log.debug('Can\'t read rating from .nfo.')
                             nfo_rating = 0.0
                             pass
                 if preferences['altratings']:
