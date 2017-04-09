@@ -72,7 +72,7 @@ class XBMCNFO(PlexAgent):
     Uses XBMC nfo files as the metadata source for Plex Movies.
     """
     name = 'XBMCnfoMoviesImporter'
-    ver = '1.1-99-g694bbd7-205'
+    ver = '1.1-100-g7c21f77-206'
     primary_provider = True
     languages = [Locale.Language.NoLanguage]
     accepts_from = [
@@ -502,9 +502,14 @@ class XBMCNFO(PlexAgent):
                 except:
                     pass
 
+                metadata.summary = ''
                 # Tagline
                 try:
-                    metadata.tagline = nfo_xml.xpath('tagline')[0].text.strip()
+                    tagline = nfo_xml.xpath('tagline')[0].text.strip()
+                    metadata.tagline = tagline
+                    if preferences['tlinsummary']:
+                        log.debug('User setting shows tagline in summary...')
+                        metadata.summary = "Tagline: " + tagline + ' | '
                 except:
                     pass
                 # Summary (Outline/Plot)
@@ -526,10 +531,9 @@ class XBMCNFO(PlexAgent):
                             raise
                     except:
                         summary = nfo_xml.xpath(s_type_2)[0].text.strip('| \t\r\n')
-                    metadata.summary = summary
+                    metadata.summary = metadata.summary + summary
                 except:
                     log.debug('Exception on reading summary!')
-                    metadata.summary = ''
                     pass
                 # Ratings
                 nfo_rating = None

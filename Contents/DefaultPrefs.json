@@ -49,6 +49,12 @@
     "default":"false"
   },
   {
+    "id":"tlinsummary",
+    "label":"show tagline in front of summary\n__________________________________________________________________________________________",
+    "type":"bool",
+    "default":"false"
+  },
+  {
     "id":"ratings",
     "label":"Restrict additional ratings to identifiers separated by comma (eg: IMDb, RT). If left empty all ratings found will be included.",
     "type":"text",
