@@ -72,7 +72,7 @@ class XBMCNFO(PlexAgent):
     Uses XBMC nfo files as the metadata source for Plex Movies.
     """
     name = 'XBMCnfoMoviesImporter'
-    ver = '1.1-100-g7c21f77-206'
+    ver = '1.1-101-ga3d5f99-207'
     primary_provider = True
     languages = [Locale.Language.NoLanguage]
     accepts_from = [
@@ -686,21 +686,27 @@ class XBMCNFO(PlexAgent):
                         log.debug('No Duration in .nfo file.')
                         pass
                 # Actors
+                rroles = []
                 metadata.roles.clear()
                 for n, actor in enumerate(nfo_xml.xpath('actor')):
-                    role = metadata.roles.new()
+                    newrole = metadata.roles.new()
                     try:
-                        role.name = actor.xpath('name')[0].text
+                        newrole.name = actor.xpath('name')[0].text
                     except:
-                        role.name = 'Unknown Name ' + str(n)
+                        newrole.name = 'Unknown Name ' + str (n)
                         pass
                     try:
-                        role.role = actor.xpath('role')[0].text
+                        role = actor.xpath('role')[0].text
+                        if role in rroles:
+                            newrole.role = role + ' ' + str(n)
+                        else:
+                            newrole.role = role
+                        rroles.append (newrole.role)
                     except:
-                        role.role = 'Unknown Role ' + str(n)
+                        newrole.role = 'Unknown Role ' + str(n)
                         pass
                     try:
-                        role.photo = actor.xpath('thumb')[0].text
+                        newrole.photo = actor.xpath('thumb')[0].text
                     except:
                         pass
 
