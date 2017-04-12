@@ -22,6 +22,9 @@ import os
 import re
 import sys
 from dateutil.parser import parse
+import traceback
+import urllib
+import urlparse
 
 if sys.version_info < (3, 0):
     from htmlentitydefs import name2codepoint
@@ -72,7 +75,7 @@ class XBMCNFO(PlexAgent):
     Uses XBMC nfo files as the metadata source for Plex Movies.
     """
     name = 'XBMCnfoMoviesImporter'
-    ver = '1.1-102-gb72f4c3-208'
+    ver = '1.1-103-g5ff13c4-209'
     primary_provider = True
     languages = [Locale.Language.NoLanguage]
     accepts_from = [
@@ -705,10 +708,48 @@ class XBMCNFO(PlexAgent):
                     except:
                         newrole.role = 'Unknown Role ' + str(n)
                         pass
-                    try:
-                        newrole.photo = actor.xpath('thumb')[0].text
-                    except:
-                        pass
+                    newrole.photo = ''
+                    athumbloc = preferences['athumblocation']
+                    if athumbloc in ['local','global']:
+                        aname = None
+                        try:
+                            try:
+                                aname = actor.xpath('name')[0].text
+                            except:
+                                pass
+                            if aname:
+                                aimagefilename = aname.replace(' ', '_') + '.jpg'
+                                athumbpath = preferences['athumbpath'].rstrip ('/')
+                                if not athumbpath == '':
+                                    if athumbloc == 'local':
+                                        localpath = os.path.join (folder_path,'.actors',aimagefilename)
+                                        aimagepath = athumbpath + '/' + os.path.basename(folder_path) + '/.actors/' + aimagefilename
+                                        if not os.path.isfile(localpath):
+                                            log.debug ('failed setting ' + athumbloc + ' actor photo: ' + aimagepath)
+                                            aimagepath = None
+                                    if athumbloc == 'global':
+                                        aimagepath = athumbpath + '/' + aimagefilename
+                                        scheme, netloc, path, qs, anchor = urlparse.urlsplit(aimagepath)
+                                        path = urllib.quote(path, '/%')
+                                        qs = urllib.quote_plus(qs, ':&=')
+                                        aimagepathurl = urlparse.urlunsplit((scheme, netloc, path, qs, anchor))
+                                        response = urllib.urlopen(aimagepathurl).code
+                                        if not response == 200:
+                                            log.debug ('failed setting ' + athumbloc + ' actor photo: ' + aimagepath)
+                                            aimagepath = None
+                                    if aimagepath:
+                                        newrole.photo = aimagepath
+                                        log.debug ('success setting ' + athumbloc + ' actor photo: ' + aimagepath)
+                        except:
+                            log.debug ('exception setting local or global actor photo!')
+                            pass
+                    if athumbloc == 'link' or not newrole.photo:
+                        try:
+                            newrole.photo = actor.xpath('thumb')[0].text
+                            log.debug ('linked actor photo: ' + newrole.photo)
+                        except:
+                            log.debug ('failed setting linked actor photo!')
+                            pass
 
                 if not preferences['localmediaagent']:
                     # Trailer Support
@@ -822,7 +863,6 @@ class XBMCNFO(PlexAgent):
             return metadata
 
 xbmcnfo = XBMCNFO
-
 
 # -- LOG ADAPTER -------------------------------------------------------------
 
