@@ -75,7 +75,7 @@ class XBMCNFO(PlexAgent):
     Uses XBMC nfo files as the metadata source for Plex Movies.
     """
     name = 'XBMCnfoMoviesImporter'
-    ver = '1.1-103-g5ff13c4-209'
+    ver = '1.1-104-g783339c-210'
     primary_provider = True
     languages = [Locale.Language.NoLanguage]
     accepts_from = [
@@ -723,7 +723,18 @@ class XBMCNFO(PlexAgent):
                                 if not athumbpath == '':
                                     if athumbloc == 'local':
                                         localpath = os.path.join (folder_path,'.actors',aimagefilename)
-                                        aimagepath = athumbpath + '/' + os.path.basename(folder_path) + '/.actors/' + aimagefilename
+                                        scheme, netloc, path, qs, anchor = urlparse.urlsplit(athumbpath)
+                                        basepath = os.path.basename (path)
+                                        log.debug ('Searching for additional path parts after: ' + basepath)
+                                        searchpos = folder_path.find (basepath)
+                                        addpos = searchpos + len(basepath)
+                                        addpath = os.path.dirname(folder_path)[addpos:]
+                                        if searchpos != -1 and addpath !='':
+                                            log.debug ('Found additional path parts: ' + addpath)
+                                        else:
+                                            addpath = ''
+                                            log.debug ('Found no additional path parts.')
+                                        aimagepath = athumbpath + addpath + '/' + os.path.basename(folder_path) + '/.actors/' + aimagefilename
                                         if not os.path.isfile(localpath):
                                             log.debug ('failed setting ' + athumbloc + ' actor photo: ' + aimagepath)
                                             aimagepath = None
@@ -742,6 +753,7 @@ class XBMCNFO(PlexAgent):
                                         log.debug ('success setting ' + athumbloc + ' actor photo: ' + aimagepath)
                         except:
                             log.debug ('exception setting local or global actor photo!')
+                            log.debug ("Traceback: " + traceback.format_exc())
                             pass
                     if athumbloc == 'link' or not newrole.photo:
                         try:
