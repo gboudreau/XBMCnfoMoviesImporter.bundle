@@ -75,7 +75,7 @@ class XBMCNFO(PlexAgent):
     Uses XBMC nfo files as the metadata source for Plex Movies.
     """
     name = 'XBMCnfoMoviesImporter'
-    ver = '1.1-104-g783339c-210'
+    ver = '1.1-105-g3d7cba4-211'
     primary_provider = True
     languages = [Locale.Language.NoLanguage]
     accepts_from = [
@@ -100,6 +100,11 @@ class XBMCNFO(PlexAgent):
             plugin=self.name, number=self.ver))
         log.debug('Plex Server Version: {number}'.format(
             number=Platform.ServerVersion))
+
+        if preferences['debug']:
+            log.info ('Agents debug logging is enabled!')
+        else:
+            log.info ('Agents debug logging is disabled!')
 
         path1 = media.items[0].parts[0].file
         log.debug('media file: {name}'.format(name=path1))
@@ -223,6 +228,11 @@ class XBMCNFO(PlexAgent):
             plugin=self.name, number=self.ver))
         log.debug('Plex Server Version: {number}'.format(
             number=Platform.ServerVersion))
+
+        if preferences['debug']:
+            log.info ('Agents debug logging is enabled!')
+        else:
+            log.info ('Agents debug logging is disabled!')
 
         poster_data = None
         poster_filename = None
