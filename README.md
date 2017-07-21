@@ -1,6 +1,6 @@
 XBMCnfoMoviesImporter.bundle-for-Plex
 =====================================
-###Installation:
+### Installation:
 It is recommended to install the [WebTools plugin](http://forums.plex.tv/discussion/126254/rel-webtools-2-x).
 
 Using the Unsupported Appstore from WebTools it is possible
@@ -12,7 +12,7 @@ After successfully installing WebTools please login and select the
 "Unsupported Appstore" Module. There you click on the "Agent" tab,
 scroll down and can now easily install the XBMCnfoMoviesImporter.
 
-###Manual Installation:
+### Manual Installation:
 Not recommended, but possible if you know what you are doing.
 
 1. Download the [zipped bundle](https://github.com/gboudreau/XBMCnfoMoviesImporter.bundle/archive/master.zip) from github,
