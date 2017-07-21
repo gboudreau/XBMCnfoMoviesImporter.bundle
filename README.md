@@ -1,6 +1,6 @@
 XBMCnfoMoviesImporter.bundle-for-Plex
 =====================================
-Installation:
+###Installation:
 It is recommended to install the [WebTools plugin](http://forums.plex.tv/discussion/126254/rel-webtools-2-x).
 
 Using the Unsupported Appstore from WebTools it is possible
@@ -12,17 +12,17 @@ After successfully installing WebTools please login and select the
 "Unsupported Appstore" Module. There you click on the "Agent" tab,
 scroll down and can now easily install the XBMCnfoMoviesImporter.
 
-Manual Installation:
+###Manual Installation:
 Not recommended, but possible if you know what you are doing.
 
-Download the [zipped bundle](https://github.com/gboudreau/XBMCnfoMoviesImporter.bundle/archive/master.zip) from github,
-extract it,
-rename it to **XBMCnfoMoviesImporter.bundle**,
-find the [Plex Media Server data directory](https://support.plex.tv/hc/en-us/articles/202915258-Where-is-the-Plex-Media-Server-data-directory-located-)
-move the .bundle folder to the Plug-ins directory,
-restart plex and test,
-if necessary change the owner and permissions of the .bundle and
-restart plex again.
+1. Download the [zipped bundle](https://github.com/gboudreau/XBMCnfoMoviesImporter.bundle/archive/master.zip) from github,
+2. extract it,
+3. rename it to **XBMCnfoMoviesImporter.bundle**,
+4. find the [Plex Media Server data directory](https://support.plex.tv/hc/en-us/articles/202915258-Where-is-the-Plex-Media-Server-data-directory-located-)
+5. move the .bundle folder to the Plug-ins directory,
+6. restart plex and test,
+7. if necessary change the owner and permissions of the .bundle and
+8. restart plex again.
 
 User MattJ from the plex forum reported the following steps to install on ubuntu 14.04:
 - Download from github and unzip
