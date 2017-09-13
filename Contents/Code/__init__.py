@@ -25,6 +25,7 @@ from dateutil.parser import parse
 import traceback
 import urllib
 import urlparse
+import subtitles
 
 if sys.version_info < (3, 0):
     from htmlentitydefs import name2codepoint
@@ -655,10 +656,14 @@ class XBMCNFO(PlexAgent):
                     pass
                 # Collections (Set)
                 setname = None
+                # Create a pattern to remove 'Series' and 'Collection' from the end of the
+                # setname since Plex adds 'Collection' in the GUI already
+                setname_pat = re.compile(r'[\s]?(series|collection)$', re.IGNORECASE)
                 try:
                     metadata.collections.clear()
                     # trying enhanced set tag name first
                     setname = nfo_xml.xpath('set')[0].xpath('name')[0].text
+                    setname = setname_pat.sub('', setname.strip())
                     log.debug('Enhanced set tag found: ' + setname)
                 except:
                     log.debug('No enhanced set tag found...')
@@ -667,17 +672,18 @@ class XBMCNFO(PlexAgent):
                     # fallback to flat style set tag
                     if not setname:
                         setname = nfo_xml.xpath('set')[0].text
+                        setname = setname_pat.sub('', setname.strip())
                         log.debug('Set tag found: ' + setname)
                 except:
                     log.debug('No set tag found...')
                     pass
                 if setname:
-                    metadata.collections.add (setname)
+                    metadata.collections.add(setname)
                     log.debug('Added Collection from Set tag.')
                 # Collections (Tags)
                 try:
                     tags = nfo_xml.xpath('tag')
-                    [metadata.collections.add(t.strip()) for tag_xml in tags for t in tag_xml.text.split('/')]
+                    [metadata.collections.add(setname_pat.sub('', t.strip())) for tag_xml in tags for t in tag_xml.text.split('/')]
                     log.debug('Added Collection(s) from tags.')
                 except:
                     log.debug('Error adding Collection(s) from tags.')
@@ -791,7 +797,23 @@ class XBMCNFO(PlexAgent):
                                     log.debug('Trailer title:' + title)
                             except:
                                 log.debug('Exception adding trailer file!')
-
+                
+                if not preferences['localmediaagent'] and preferences['subtitle']:
+                    # Subtitle Support
+                    # Supports XBMC/Kodi subtitle filenames AND Plex subtitle filenames
+                    subtitle_files = []
+                    # Look for subtitle files and process them
+                    for item in media.items:
+                        for part in item.parts:
+                            subtitle_files.extend(subtitles.process_subtitle_files(part))
+                    
+                    if len(subtitle_files) > 0:
+                        log.debug("Listing details for {} subtitle file(s) found:".format(str(len(subtitle_files))))
+                        for subtitle_file in subtitle_files:
+                            log.debug("    {}".format(subtitle_file))
+                    
+                    subtitles.cleanup_subtitle_entries(part, subtitle_files)
+                
                 log.info('---------------------')
                 log.info('Movie nfo Information')
                 log.info('---------------------')
