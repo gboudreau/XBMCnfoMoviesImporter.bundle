@@ -2,55 +2,67 @@
 [
   {
     "id":"debug",
-    "label":"enable debug logging",
-    "type":"bool",
-    "default":"false"
-  },
-  {
-    "id":"localmediaagent",
-    "label":"disable agents artwork support (use local media assets instead)",
+    "label":"Enable debug logging",
     "type":"bool",
     "default":"false"
   },
   {
     "id":"dayfirst",
-    "label":"enable day first in ambiguous dates",
+    "label":"Enable day first in ambiguous dates",
     "type":"bool",
     "default":"false"
   },
   {
     "id":"plot",
-    "label":"use plot instead of outline",
+    "label":"Use plot instead of outline\n_____________________________________________________________________________________",
+    "type":"bool",
+    "default":"false"
+  },
+  {
+    "id":"localmediaagent",
+    "label":"Disable local media support for artwork, trailers and subtitles (use local media assets instead)",
     "type":"bool",
     "default":"false"
   },
   {
     "id":"trailer",
-    "label":"enable trailer support\n__________________________________________________________________________________________",
+    "label":"Enable trailer support",
     "type":"bool",
     "default":"false"
   },
   {
+    "id":"subtitle",
+    "label":"Enable subtitle file support",
+    "type":"bool",
+    "default":"false"
+  },
+  {
+    "id":"subglobalpath",
+    "label":"Path to global subtitle folder (Leave blank if none)",
+    "type":"text",
+    "default":""
+  },
+  {
     "id":"beforerating",
-    "label":"text before rating (supports html specialchars!):",
+    "label":"_____________________________________________________________________________________\nText before rating (supports html specialchars!):",
     "type":"text",
     "default":"&#9733; "
   },
   {
     "id":"afterrating",
-    "label":"text after rating (supports html specialchars!):",
+    "label":"Text after rating (supports html specialchars!):",
     "type":"text",
     "default":" | "
   },
   {
     "id":"preserverating",
-    "label":"pad .nfo rating with texts above and place it in front of summary\n__________________________________________________________________________________________",
+    "label":"Pad .nfo rating with texts above and place it in front of summary\n_____________________________________________________________________________________",
     "type":"bool",
     "default":"false"
   },
   {
     "id":"tlinsummary",
-    "label":"show tagline in front of summary\n__________________________________________________________________________________________",
+    "label":"Show tagline in front of summary\n_____________________________________________________________________________________",
     "type":"bool",
     "default":"false"
   },
@@ -72,7 +84,7 @@
   },
   {
     "id":"altratings",
-    "label":"enable additional ratings support\n__________________________________________________________________________________________",
+    "label":"Enable additional ratings support\n_____________________________________________________________________________________",
     "type":"bool",
     "default":"false"
   },
