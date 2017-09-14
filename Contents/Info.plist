@@ -13,7 +13,7 @@
 	<key>PlexAgentAttributionText</key>
 	<string>
 <![CDATA[
-XBMCnfoMoviesImporter (V 1.1-110)
+XBMCnfoMoviesImporter (V 1.1-114)
 <br /><br />
 is an agent to import the local metadata XBMC creates when you export your library
 to separate files. Movie poster and fanart will be recognized, if they are saved

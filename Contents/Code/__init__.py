@@ -15,6 +15,7 @@ CREDITS:
     Logo: .......................... CrazyRabbit
     Krypton Rating fix: ............ F4RHaD
     PEP 8 and refactoring: ......... Labrys
+    Subtitle support and some fixes: glitch452
 """
 
 from datetime import datetime
@@ -76,7 +77,7 @@ class XBMCNFO(PlexAgent):
     Uses XBMC nfo files as the metadata source for Plex Movies.
     """
     name = 'XBMCnfoMoviesImporter'
-    ver = '1.1-110-gaeda717-216'
+    ver = '1.1-114-g094312c-220'
     primary_provider = True
     languages = [Locale.Language.NoLanguage]
     accepts_from = [
@@ -797,7 +798,7 @@ class XBMCNFO(PlexAgent):
                                     log.debug('Trailer title:' + title)
                             except:
                                 log.debug('Exception adding trailer file!')
-                
+
                 if not preferences['localmediaagent'] and preferences['subtitle']:
                     # Subtitle Support
                     # Supports XBMC/Kodi subtitle filenames AND Plex subtitle filenames
@@ -806,18 +807,18 @@ class XBMCNFO(PlexAgent):
                     for item in media.items:
                         for part in item.parts:
                             subtitle_files.extend(subtitles.process_subtitle_files(part))
-                    
+
                     # If some subtitle files were found, log the details for debugging purposes
                     if len(subtitle_files) > 0:
                         log.debug("Listing details for {} subtitle file(s) found:".format(str(len(subtitle_files))))
                         for subtitle_file in subtitle_files:
                             log.debug("    {}".format(subtitle_file))
-                    
+
                     # Remove subtitle files that are no longer present by comparing with the newly found files
                     for item in media.items:
                         for part in item.parts:
                             subtitles.cleanup_subtitle_entries(part, subtitle_files)
-                
+
                 log.info('---------------------')
                 log.info('Movie nfo Information')
                 log.info('---------------------')
