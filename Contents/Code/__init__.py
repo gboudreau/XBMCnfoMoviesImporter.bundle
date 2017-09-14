@@ -76,7 +76,7 @@ class XBMCNFO(PlexAgent):
     Uses XBMC nfo files as the metadata source for Plex Movies.
     """
     name = 'XBMCnfoMoviesImporter'
-    ver = '1.1-110-gaeda717-216'
+    ver = '1.1-113-gc30664c-219'
     primary_provider = True
     languages = [Locale.Language.NoLanguage]
     accepts_from = [
