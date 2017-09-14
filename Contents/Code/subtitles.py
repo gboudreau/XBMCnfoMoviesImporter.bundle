@@ -22,8 +22,16 @@ def process_subtitle_files(part):
     (part_file_base_name, part_file_ext) = os.path.splitext(part_file_name)
     search_paths = [ part_file_path ]
     
-    if os.path.isdir(preferences['subglobalpath']):
-        search_paths.append(preferences['subglobalpath'])
+    try:
+        if preferences['subglobalpath'] == None:
+            log.debug("No global subtitle folder has been set")
+        elif os.path.isdir(preferences['subglobalpath']):
+            search_paths.append(preferences['subglobalpath'])
+        else:
+            log.debug("The global subtitle folder '{}' does not exist".format(preferences['subglobalpath']))
+    except Exception as e:
+        log.debug("Unable to access global subtitle folder: '{}'".format(preferences['subglobalpath']))
+        log.debug("Exception Message: {}".format(str(e)))
     
     for search_path in search_paths:
         log.debug("Searching for subtitles in: {}".format(search_path))
@@ -43,7 +51,7 @@ def process_subtitle_files(part):
             
             # Set/Reset some default variable values for every file
             sub_flag = ""
-            lang_code = "xx"
+            lang_code = "xx" # Default to the 'unknown' language code
             forced = ''
             default = ''
             sub_codec = None
@@ -116,7 +124,7 @@ def process_subtitle_files(part):
                     log.debug("Found landuage '{}' in file: {}".format(idx_lang_code, idx_full_name))
                     part.subtitles[idx_lang_code][file_base_name] = Proxy.LocalFile(idx_full_name, index = str(idx_language_index), format = "vobsub")
                     idx_language_index += 1
-                
+                    
                     file_vars["lang_code"] = idx_lang_code
                     file_vars["format"] = "vobsub"
                     file_vars["status"] = "success"

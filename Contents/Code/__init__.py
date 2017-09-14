@@ -808,12 +808,16 @@ class XBMCNFO(PlexAgent):
                         for part in item.parts:
                             subtitle_files.extend(subtitles.process_subtitle_files(part))
 
+                    # If some subtitle files were found, log the details for debugging purposes
                     if len(subtitle_files) > 0:
                         log.debug("Listing details for {} subtitle file(s) found:".format(str(len(subtitle_files))))
                         for subtitle_file in subtitle_files:
                             log.debug("    {}".format(subtitle_file))
 
-                    subtitles.cleanup_subtitle_entries(part, subtitle_files)
+                    # Remove subtitle files that are no longer present by comparing with the newly found files
+                    for item in media.items:
+                        for part in item.parts:
+                            subtitles.cleanup_subtitle_entries(part, subtitle_files)
 
                 log.info('---------------------')
                 log.info('Movie nfo Information')
