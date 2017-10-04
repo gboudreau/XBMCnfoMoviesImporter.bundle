@@ -1116,3 +1116,4 @@ def unescape(markup):
         return element  # leave as is
 
     return UNESCAPE_REGEX.sub(fix_up, markup)
+
