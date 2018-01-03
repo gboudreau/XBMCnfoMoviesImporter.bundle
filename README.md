@@ -1,7 +1,7 @@
 XBMCnfoMoviesImporter.bundle-for-Plex
 =====================================
 ### Installation:
-It is recommended to install the [WebTools plugin](http://forums.plex.tv/discussion/126254/rel-webtools-2-x).
+It is recommended to install the [WebTools plugin](http://forums.plex.tv/discussion/288191/webtools-unsupported-appstore/p1).
 
 Using the Unsupported Appstore from WebTools it is possible
 to easily install, update and remove the Agent, without having
