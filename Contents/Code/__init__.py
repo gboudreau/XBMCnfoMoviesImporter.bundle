@@ -77,7 +77,7 @@ class XBMCNFO(PlexAgent):
     Uses XBMC nfo files as the metadata source for Plex Movies.
     """
     name = 'XBMCnfoMoviesImporter'
-    ver = '1.1-118-gd7c1999-224'
+    ver = '1.1-119-g5106699-225'
     primary_provider = True
     languages = [Locale.Language.NoLanguage]
     accepts_from = [
@@ -758,6 +758,7 @@ class XBMCNFO(PlexAgent):
                                     if athumbloc == 'global':
                                         aimagepath = athumbpath + '/' + aimagefilename
                                         scheme, netloc, path, qs, anchor = urlparse.urlsplit(aimagepath)
+                                        path = urllib.quote(path.encode('utf-8'))
                                         path = urllib.quote(path, '/%')
                                         qs = urllib.quote_plus(qs, ':&=')
                                         aimagepathurl = urlparse.urlunsplit((scheme, netloc, path, qs, anchor))
