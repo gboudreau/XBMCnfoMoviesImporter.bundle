@@ -682,13 +682,15 @@ class XBMCNFO(PlexAgent):
                     metadata.collections.add(setname)
                     log.debug('Added Collection from Set tag.')
                 # Collections (Tags)
-                try:
-                    tags = nfo_xml.xpath('tag')
-                    [metadata.collections.add(setname_pat.sub('', t.strip())) for tag_xml in tags for t in tag_xml.text.split('/')]
-                    log.debug('Added Collection(s) from tags.')
-                except:
-                    log.debug('Error adding Collection(s) from tags.')
-                    pass
+                if preferences['collectionsfromtags']:
+                    log.debug('Creating Collections from tags...')
+                    try:
+                        tags = nfo_xml.xpath('tag')
+                        [metadata.collections.add(setname_pat.sub('', t.strip())) for tag_xml in tags for t in tag_xml.text.split('/')]
+                        log.debug('Added Collection(s) from tags.')
+                    except:
+                        log.debug('Error adding Collection(s) from tags.')
+                        pass
                 # Duration
                 try:
                     log.debug('Trying to read <durationinseconds> tag from .nfo file...')

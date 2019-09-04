@@ -89,6 +89,12 @@
     "default":"false"
   },
   {
+    "id":"collectionsfromtags",
+    "label":"Enable generating Collections from tags\n_____________________________________________________________________________________",
+    "type":"bool",
+    "default":"true"
+  },
+  {
     "id": "country",
     "label": "Country (used for content rating)",
     "type": "enum",
