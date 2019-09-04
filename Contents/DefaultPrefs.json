@@ -92,7 +92,7 @@
     "id":"collectionsfromtags",
     "label":"Enable generating Collections from tags\n_____________________________________________________________________________________",
     "type":"bool",
-    "default":"false"
+    "default":"true"
   },
   {
     "id": "country",
