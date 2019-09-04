@@ -89,7 +89,8 @@ class XBMCNFO(PlexAgent):
 
     contributes_to = [
         'com.plexapp.agents.themoviedb',
-        'com.plexapp.agents.imdb'
+        'com.plexapp.agents.imdb',
+        'com.plexapp.agents.none'
     ]
 
 # ##### search function #####
