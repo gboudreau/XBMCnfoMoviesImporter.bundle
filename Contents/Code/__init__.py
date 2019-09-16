@@ -120,16 +120,16 @@ class XBMCNFO(PlexAgent):
         # Movie name from folder
         movie_name = get_movie_name_from_folder(folder_path, False)
 
-        nfo_names = [
+        nfo_names = get_related_files(path1, '.nfo')
+        nfo_names.extend([
             # Eden / Frodo
-            get_related_file(path1, '.nfo'),
             '{movie}.nfo'.format(movie=movie_name_with_year),
             '{movie}.nfo'.format(movie=movie_name),
             # VIDEO_TS
             os.path.join(folder_path, 'video_ts.nfo'),
             # movie.nfo (e.g. FilmInfo!Organizer users)
             os.path.join(folder_path, 'movie.nfo'),
-        ]
+        ])
 
         # last resort - use first found .nfo
         nfo_files = (f for f in os.listdir(folder_path) if f.endswith('.nfo'))
@@ -258,22 +258,22 @@ class XBMCNFO(PlexAgent):
         movie_name = get_movie_name_from_folder(folder_path, False)
 
         if not preferences['localmediaagent']:
-            poster_names = [
+            poster_names = get_related_files(path1, '-poster.jpg')
+            poster_names.extend([
                 # Frodo
-                get_related_file(path1, '-poster.jpg'),
                 '{movie}-poster.jpg'.format(movie=movie_name_with_year),
                 '{movie}-poster.jpg'.format(movie=movie_name),
                 os.path.join(folder_path, 'poster.jpg'),
-            ]
+            ])
             if is_dvd:
                 poster_names.append(os.path.join(folder_path_dvd, 'poster.jpg'))
             # Eden
-            poster_names.append(get_related_file(path1, '.tbn'))
+            poster_names.extend(get_related_files(path1, '.tbn'))
             poster_names.append('{path}/folder.jpg'.format(path=folder_path))
             if is_dvd:
                 poster_names.append(os.path.join(folder_path_dvd, 'folder.jpg'))
             # DLNA
-            poster_names.append(get_related_file(path1, '.jpg'))
+            poster_names.extend(get_related_files(path1, '.jpg'))
             # Others
             poster_names.append('{path}/cover.jpg'.format(path=folder_path))
             if is_dvd:
@@ -294,14 +294,13 @@ class XBMCNFO(PlexAgent):
                     del metadata.posters[key]
                 metadata.posters[poster_filename] = MediaProxy(poster_data)
 
-
-            fanart_names = [
+            fanart_names = get_related_files(path1, '-fanart.jpg')
+            fanart_names.extend([
                 # Eden / Frodo
-                get_related_file(path1, '-fanart.jpg'),
                 '{movie}-fanart.jpg'.format(movie=movie_name_with_year),
                 '{movie}-fanart.jpg'.format(movie=movie_name),
                 os.path.join(folder_path, 'fanart.jpg'),
-            ]
+            ])
             if is_dvd:
                 fanart_names.append(os.path.join(folder_path_dvd, 'fanart.jpg'))
             # Others
@@ -324,16 +323,16 @@ class XBMCNFO(PlexAgent):
                     del metadata.art[key]
                 metadata.art[fanart_filename] = MediaProxy(fanart_data)
 
-        nfo_names = [
+        nfo_names = get_related_files(path1, '.nfo')
+        nfo_names.extend([
             # Eden / Frodo
-            get_related_file(path1, '.nfo'),
             '{movie}.nfo'.format(movie=movie_name_with_year),
             '{movie}.nfo'.format(movie=movie_name),
             # VIDEO_TS
             os.path.join(folder_path, 'video_ts.nfo'),
             # movie.nfo (e.g. FilmInfo!Organizer users)
             os.path.join(folder_path, 'movie.nfo'),
-        ]
+        ])
 
         # last resort - use first found .nfo
         nfo_files = (f for f in os.listdir(folder_path) if f.endswith('.nfo'))
@@ -986,6 +985,30 @@ def get_related_file(video_file, file_extension):
     return get_base_file(video_file) + file_extension
 
 
+RELATED_DIRS = {
+    '/',
+    '/NFO/',
+    '/nfo/',
+}
+
+
+def get_related_files(video_file, file_extension):
+    """
+    Get a file related to the Video with a different extension.
+    Support alternate subdirectories for related files.
+
+    :param video_file: the filename of the associated video
+    :param file_extension: the related files extension
+    :return: a filename for a related file
+    """
+
+    folder_path, file_name = os.path.split(video_file)
+    results = []
+    for i in RELATED_DIRS:
+        results.append(get_base_file(folder_path + i + file_name) + file_extension)
+    return results
+
+
 MOVIE_NAME_REGEX = re.compile(r' \(.*\)')
 
 
@@ -1096,3 +1119,4 @@ def unescape(markup):
         return element  # leave as is
 
     return UNESCAPE_REGEX.sub(fix_up, markup)
+
