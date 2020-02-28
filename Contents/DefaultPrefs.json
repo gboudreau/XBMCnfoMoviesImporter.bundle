@@ -4,7 +4,7 @@
     "id":"debug",
     "label":"Enable debug logging",
     "type":"bool",
-    "default":"false"
+    "default":"true"
   },
   {
     "id":"dayfirst",

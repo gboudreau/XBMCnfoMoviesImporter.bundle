@@ -1,7 +1,7 @@
 import os
 import re
 from __init__ import PlexLogAdapter
-from __init__ import XBMCLogAdapter
+from __init__ import JAVLogAdapter
 from __init__ import preferences
 from __init__ import log
 

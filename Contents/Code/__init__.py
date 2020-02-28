@@ -1,7 +1,7 @@
 # coding=utf-8
 
 """
-XBMCnfoMoviesImporter
+JAVnfoMoviesImporter
 
 spec'd from:
  http://wiki.xbmc.org/index.php?title=Import_-_Export_Library#Video_nfo_Files
@@ -27,6 +27,8 @@ import traceback
 import urllib
 import urlparse
 import subtitles
+import json
+import ssl
 
 if sys.version_info < (3, 0):
     from htmlentitydefs import name2codepoint
@@ -70,14 +72,41 @@ RATING_REGEX_1 = re.compile(
 RATING_REGEX_2 = re.compile(r'\s*\(.*?\)')
 
 
-class XBMCNFO(PlexAgent):
+def get_gfriends_map():
+    github_template = 'http://raw.githubusercontent.com/ddd354/gfriends/master/{}/{}/{}'
+    request_url = 'http://raw.githubusercontent.com/ddd354/gfriends/master/Filetree.json'
+    context = getattr(ssl, '_create_unverified_context')()
+    response = urllib.urlopen(request_url, context=context)
+    if response.code != 200:
+        log.debug('request gfriend map failed {}'.format(response.code))
+        return {}
+
+    map_json = json.load(response)
+    map_json.pop('Filetree.json', None)
+    map_json.pop('README.md', None)
+    #log.debug(map_json)
+    output = {}
+
+    # plex doesnt support fucking recursive call
+    first_lvls = map_json.keys()
+    for first in first_lvls:
+        second_lvls = map_json[first].keys()
+        for second in second_lvls:
+            for k, v in map_json[first][second].items():
+                output[k[:-4]] = github_template.format(first, second, v)
+
+    #log.debug(output)
+    return output
+
+
+class JAVNFO(PlexAgent):
     """
     A Plex Metadata Agent for Movies.
 
-    Uses XBMC nfo files as the metadata source for Plex Movies.
+    Uses JAV nfo files as the metadata source for Plex Movies.
     """
-    name = 'XBMCnfoMoviesImporter'
-    ver = '1.1-119-g5106699-225'
+    name = 'JAVnfoMoviesImporter'
+    ver = '2.0'
     primary_provider = True
     languages = [Locale.Language.NoLanguage]
     accepts_from = [
@@ -92,6 +121,7 @@ class XBMCNFO(PlexAgent):
         'com.plexapp.agents.imdb',
         'com.plexapp.agents.none'
     ]
+    
 
 # ##### search function #####
     def search(self, results, media, lang):
@@ -160,7 +190,7 @@ class XBMCNFO(PlexAgent):
                     content=nfo_text.rsplit('</movie>', 1)[0]
                 )
 
-                # likely an xbmc nfo file
+                # likely an jav nfo file
                 try:
                     nfo_xml = element_from_string(nfo_text).xpath('//movie')[0]
                 except:
@@ -366,7 +396,7 @@ class XBMCNFO(PlexAgent):
                     content=nfo_text.rsplit('</movie>', 1)[0]
                 )
 
-                # likely an xbmc nfo file
+                # likely an jav nfo file
                 try:
                     nfo_xml = element_from_string(nfo_text).xpath('//movie')[0]
                 except:
@@ -710,6 +740,8 @@ class XBMCNFO(PlexAgent):
                 # Actors
                 rroles = []
                 metadata.roles.clear()
+                gfriends_map = get_gfriends_map()
+                log.debug(gfriends_map)
                 for n, actor in enumerate(nfo_xml.xpath('actor')):
                     newrole = metadata.roles.new()
                     try:
@@ -729,7 +761,16 @@ class XBMCNFO(PlexAgent):
                         pass
                     newrole.photo = ''
                     athumbloc = preferences['athumblocation']
-                    if athumbloc in ['local','global']:
+
+                    # brand new jav actor logic:
+                    aname = actor.xpath('name')[0].text
+                    newrole.photo = gfriends_map.get(aname.upper(), '')
+                    if newrole.photo:
+                        log.debug('{} found url {}'.format(aname, newrole.photo))
+                    else:
+                        log.debug('cannot find {} in gfriends mapping length {}'.format(aname, len(gfriends_map.keys())))
+
+                    """if athumbloc in ['local','global']:
                         aname = None
                         try:
                             try:
@@ -781,7 +822,7 @@ class XBMCNFO(PlexAgent):
                             log.debug ('linked actor photo: ' + newrole.photo)
                         except:
                             log.debug ('failed setting linked actor photo!')
-                            pass
+                            pass"""
 
                 if not preferences['localmediaagent']:
                     # Trailer Support
@@ -804,7 +845,7 @@ class XBMCNFO(PlexAgent):
 
                 if not preferences['localmediaagent'] and preferences['subtitle']:
                     # Subtitle Support
-                    # Supports XBMC/Kodi subtitle filenames AND Plex subtitle filenames
+                    # Supports JAV/Kodi subtitle filenames AND Plex subtitle filenames
                     subtitle_files = []
                     # Look for subtitle files and process them
                     for item in media.items:
@@ -914,7 +955,7 @@ class XBMCNFO(PlexAgent):
                          ' Aborting!'.format(nfo=nfo_file))
             return metadata
 
-xbmcnfo = XBMCNFO
+javnfo = JAVNFO
 
 # -- LOG ADAPTER -------------------------------------------------------------
 
@@ -933,7 +974,7 @@ class PlexLogAdapter(object):
     exception = Log.Exception
 
 
-class XBMCLogAdapter(PlexLogAdapter):
+class JAVLogAdapter(PlexLogAdapter):
     """
     Plex Log adapter that only emits debug statements based on preferences.
     """
@@ -945,7 +986,7 @@ class XBMCLogAdapter(PlexLogAdapter):
         if preferences['debug']:
             Log.Debug(*args, **kwargs)
 
-log = XBMCLogAdapter
+log = JAVLogAdapter
 
 
 # -- HELPER FUNCTIONS --------------------------------------------------------

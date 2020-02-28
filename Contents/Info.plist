@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleIdentifier</key>
-	<string>com.plexapp.agents.xbmcnfo</string>
+	<string>com.plexapp.agents.javnfo</string>
 	<key>PlexFrameworkVersion</key>
 	<string>2</string>
 	<key>PlexPluginClass</key>
@@ -13,12 +13,10 @@
 	<key>PlexAgentAttributionText</key>
 	<string>
 <![CDATA[
-XBMCnfoMoviesImporter (V 1.1-119)
+JAVnfoMoviesImporter (V 2.0)
 <br /><br />
-is an agent to import the local metadata XBMC creates when you export your library
-to separate files. Movie poster and fanart will be recognized, if they are saved
-alongside your movie in the movies folder. XBMC naming conventions apply. So don't
-expect it to work, if your naming doesn't follow them.
+is a modified version of the original XBMCnfoMoviesImporter.bundle. This version specifically modifies the actor
+avatar code block to read from ddd354/gfriends github repo to support automatic plex jav avatar scrape.
 ]]>
 	</string>
 </dict>
