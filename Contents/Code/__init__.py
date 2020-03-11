@@ -69,6 +69,26 @@ RATING_REGEX_1 = re.compile(
 )
 RATING_REGEX_2 = re.compile(r'\s*\(.*?\)')
 
+def first(iterable, default=None):
+    for item in iterable:
+        return item
+    return default
+
+class NFOReader:
+    def __init__(self, nfo_xml):
+        self.nfo_xml = nfo_xml
+
+    def read_sets_name(self):
+        '''
+        sets name into a list than return it.
+        '''
+        set_list = []
+        for set_el in self.nfo_xml.xpath('set'):
+            name_el = first(set_el.xpath('name'), set_el)
+            if name_el.text:
+                set_list.append(name_el.text)
+        return set_list
+
 
 class XBMCNFO(PlexAgent):
     """
@@ -374,6 +394,8 @@ class XBMCNFO(PlexAgent):
                               ' Aborting!'.format(nfo=nfo_file))
                     return
 
+                nfo_reader = NFOReader(nfo_xml)
+
                 # remove empty xml tags
                 log.debug('Removing empty XML tags from movies nfo...')
                 nfo_xml = remove_empty_tags(nfo_xml)
@@ -660,27 +682,21 @@ class XBMCNFO(PlexAgent):
                 # Create a pattern to remove 'Series' and 'Collection' from the end of the
                 # setname since Plex adds 'Collection' in the GUI already
                 setname_pat = re.compile(r'[\s]?(series|collection)$', re.IGNORECASE)
+                metadata.collections.clear()
+
                 try:
-                    metadata.collections.clear()
-                    # trying enhanced set tag name first
-                    setname = nfo_xml.xpath('set')[0].xpath('name')[0].text
-                    setname = setname_pat.sub('', setname.strip())
-                    log.debug('Enhanced set tag found: ' + setname)
-                except:
-                    log.debug('No enhanced set tag found...')
-                    pass
-                try:
-                    # fallback to flat style set tag
-                    if not setname:
-                        setname = nfo_xml.xpath('set')[0].text
+                    sets_list = nfo_reader.read_sets_name()
+                    for setname in sets_list:
                         setname = setname_pat.sub('', setname.strip())
-                        log.debug('Set tag found: ' + setname)
-                except:
-                    log.debug('No set tag found...')
-                    pass
-                if setname:
-                    metadata.collections.add(setname)
-                    log.debug('Added Collection from Set tag.')
+                        if setname: # skip empty name
+                            log.debug('Set name found: ' + setname)
+                            metadata.collections.add(setname)
+                            log.debug('Added Collection: {}'.format(setname))
+                    else:
+                        log.debug('No set name found...')
+                except Exception as e:
+                    log.error('Raised error when parsing set: {}'.format(e))
+
                 # Collections (Tags)
                 if preferences['collectionsfromtags']:
                     log.debug('Creating Collections from tags...')
