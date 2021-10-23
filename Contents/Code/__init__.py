@@ -305,6 +305,7 @@ class XBMCNFO(PlexAgent):
             if is_dvd:
                 poster_names.append(os.path.join(folder_path_dvd, 'movie.jpg'))
 
+            extend_file_name(poster_names)
             # check possible poster file locations
             poster_filename = check_file_paths(poster_names, 'poster')
 
@@ -333,7 +334,8 @@ class XBMCNFO(PlexAgent):
             fanart_names.append(os.path.join(folder_path, 'background.jpg'))
             if is_dvd:
                 fanart_names.append(os.path.join(folder_path_dvd, 'background.jpg'))
-
+            
+            extend_file_name(fanart_names)
             # check possible fanart file locations
             fanart_filename = check_file_paths(fanart_names, 'fanart')
 
@@ -1137,3 +1139,8 @@ def unescape(markup):
 
     return UNESCAPE_REGEX.sub(fix_up, markup)
 
+def extend_file_name(file_names):
+    file_names.extend(list(map(replace_jpg_png, file_names)))
+
+def replace_jpg_png(path):
+    return path.replace('jpg', 'png')
