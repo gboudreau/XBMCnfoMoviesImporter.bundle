@@ -27,6 +27,7 @@ import traceback
 import urllib
 import urlparse
 import subtitles
+import pprint
 
 if sys.version_info < (3, 0):
     from htmlentitydefs import name2codepoint
@@ -53,12 +54,66 @@ COUNTRY_CODES = {
     'United States': 'USA,',
 }
 
-PERCENT_RATINGS = {
-    'rottentomatoes',
-    'rotten tomatoes',
-    'rt',
-    'flixster',
+RATINGS = {
+    'imdb': {
+        'type':'audience',
+        'display':'float',
+        'image_good':'imdb://image.rating',
+        'image_bad':'imdb://image.rating',
+        'score_good':6.0,
+        'append_text_to_score':'',
+        'process_votes':True,
+        'eval':'round(float(%f), 1)',
+        'post_process':'round_1',
+    },
+    'metacritic': {
+        'type':'critic',
+        'display':'percent',
+        'image_good':'rottentomatoes://image.rating.ripe', # none exist for Metacritic, so use RT
+        'image_bad':'rottentomatoes://image.rating.rotten',
+        'score_good':6.0, # base10
+        'append_text_to_score':'',
+        'process_votes':False, # OMDb doesn't provide votes
+        'eval':'int(round(float(%f), 1)*10)',
+        'post_process':'int_times_10', # workaround for eval not working in Plex plugin scripts
+    },
+    'tomatometerallcritics': {
+        'type':'critic',
+        'display':'percent',
+        'image_good':'rottentomatoes://image.rating.ripe',
+        'image_bad':'rottentomatoes://image.rating.rotten',
+        'score_good':6.0, # base 10
+        'append_text_to_score':'%',
+        'process_votes':False, # OMDb doesn't provide votes
+        'eval':'int(round(float(%f), 1)*10)',
+        'post_process':'int_times_10', # workaround for eval not working in Plex plugin scripts
+    },
+    'tomatometerallaudience': {
+        'type':'audience',
+        'display':'percent',
+        'image_good':'rottentomatoes://image.rating.upright',
+        'image_bad':'rottentomatoes://image.rating.spilled',
+        'score_good':6.0, # base10
+        'append_text_to_score':'%',
+        'process_votes':False, # OMDb doesn't provide votes
+        'eval':'int(round(float(%f), 1)*10)',
+        'post_process':'int_times_10', # workaround for eval not working in Plex plugin scripts
+    },
+    'themoviedb': {
+        'type':'audience',
+        'display':'float',
+        'image_good':'themoviedb://image.rating',
+        'image_bad':'themoviedb://image.rating',
+        'score_good':6.0,
+        'append_text_to_score':'',
+        'process_votes':True,
+        'eval':'round(float(%f), 1)',
+        'post_process':'round_1',
+    }
 }
+
+
+DEFAULT_RATING_IMAGE = "imdb://image.rating"
 
 NFO_TEXT_REGEX_1 = re.compile(
     r'&(?![A-Za-z]+[0-9]*;|#[0-9]+;|#x[0-9a-fA-F]+;)'
@@ -126,8 +181,8 @@ class XBMCNFO(PlexAgent):
 
         if preferences['debug']:
             log.info ('Agents debug logging is enabled!')
-        else:
-            log.info ('Agents debug logging is disabled!')
+        #else:
+        #    log.info ('Agents debug logging is disabled!')
 
         path1 = media.items[0].parts[0].file
         log.debug('media file: {name}'.format(name=path1))
@@ -254,9 +309,11 @@ class XBMCNFO(PlexAgent):
 
         if preferences['debug']:
             log.info ('Agents debug logging is enabled!')
-        else:
-            log.info ('Agents debug logging is disabled!')
-
+        #else:
+        #    log.info ('Agents debug logging is disabled!')
+        
+        metadata.audience_rating_image=DEFAULT_RATING_IMAGE
+        
         poster_data = None
         poster_filename = None
         fanart_data = None
@@ -344,7 +401,18 @@ class XBMCNFO(PlexAgent):
                 for key in metadata.art.keys():
                     del metadata.art[key]
                 metadata.art[fanart_filename] = MediaProxy(fanart_data)
-
+            
+            # movie themes
+            theme_names = [os.path.join(folder_path, 'theme.mp3'), os.path.join(folder_path, 'theme.m4a')]
+            theme_filename = check_file_paths(theme_names, 'themes')
+            
+            if theme_filename:
+                theme_data = load_file(theme_filename)
+                for key in metadata.themes.keys():
+                    del metadata.themes[key]
+                metadata.themes[theme_filename] = MediaProxy(theme_data)
+        
+        
         nfo_names = get_related_files(path1, '.nfo')
         nfo_names.extend([
             # Eden / Frodo
@@ -551,6 +619,7 @@ class XBMCNFO(PlexAgent):
                         metadata.summary = "Tagline: " + tagline + ' | '
                 except:
                     pass
+                
                 # Summary (Outline/Plot)
                 try:
                     if preferences['plot']:
@@ -574,6 +643,7 @@ class XBMCNFO(PlexAgent):
                 except:
                     log.debug('Exception on reading summary!')
                     pass
+
                 # Ratings
                 nfo_rating = None
                 try:
@@ -608,20 +678,106 @@ class XBMCNFO(PlexAgent):
                         log.debug('Can\'t read additional ratings from .nfo.')
                         pass
                     if add_ratings:
+                        # keep tally of votes so we can choose the top voted rating
+                        audience_votes = -1
+                        critic_votes = -1
+                        
+                        # average out scores
+                        audience_score_total = 0.0
+                        audience_ratings_found = 0
+                        critic_score_total = 0.0
+                        critic_ratings_found = 0
+                        
+                        # track default='true' attribute
+                        audience_default_found = False
+                        critic_default_found = False
+
                         for add_rating_xml in add_ratings:
                             for add_rating in add_rating_xml:
+                                rating_provider = ""
+                                rating_value = ""
+                                rating_votes = ""
+
                                 try:
                                     rating_provider = str(add_rating.attrib['moviedb'])
                                 except:
-                                    pass
-                                    log.debug('Skipping additional rating without moviedb attribute!')
-                                    continue
-                                rating_value = str(add_rating.text.replace(',', '.'))
-                                if rating_provider.lower() in PERCENT_RATINGS:
-                                    rating_value += '%'
+                                    try:
+                                        rating_provider = str(add_rating.attrib['name'])
+                                        add_rating_value = float(add_rating.xpath('value')[0].text.replace(',', '.'))
+                                        add_votes = int(add_rating.xpath('votes')[0].text)
+                                        
+                                        # check for default='true' rating and prefer that instead of averaging out the votes
+                                        try:
+                                            rating_default = (add_rating.attrib['default'].lower() == 'true')
+                                        except:
+                                            rating_default = False
+                                        
+                                        # check for max attribute and convert to base10
+                                        try:
+                                            rating_max = int(add_rating.attrib['max'])
+                                            add_rating_value = float(add_rating_value / rating_max * 10)
+                                        except:
+                                            pass
+                                        
+                                        if rating_provider in RATINGS:
+                                            rating_info = RATINGS[rating_provider]
+                                            
+                                            if rating_info['post_process'] == "round_1":
+                                                add_rating_value = round(add_rating_value, 1) # display score in plot as max=10.0
+                                                rating_value = str(add_rating_value)
+                                            elif rating_info['post_process'] == "int_times_10": # display score in plot as max=100
+                                                add_rating_value = round(add_rating_value, 1)
+                                                rating_value = str(int(round(float(add_rating_value*10), 0)))
+                                            else:
+                                                rating_value = str(add_rating_value)
+                                            
+                                            if rating_info['type'] == 'critic' and add_votes > critic_votes and critic_default_found == False:
+                                                critic_ratings_found += 1
+                                                critic_score_total += add_rating_value
+                                                
+                                                if rating_default == True: # use default provider for rating
+                                                    critic_default_found = True
+                                                else: # use average score for rating
+                                                    add_rating_value = round(float(critic_score_total / critic_ratings_found), 1)
+                                                
+                                                if add_rating_value >= rating_info['score_good']:
+                                                    metadata.rating_image = rating_info['image_good']
+                                                else:
+                                                    metadata.rating_image = rating_info['image_bad']
+                                                
+                                                metadata.rating = add_rating_value
+                                                metadata.rating_count = add_votes
+                                            elif rating_info['type'] == 'audience' and add_votes > audience_votes and audience_default_found == False:
+                                                audience_ratings_found += 1
+                                                audience_score_total += add_rating_value
+                                                
+                                                if rating_default == True: # use default provider for rating
+                                                    critic_default_found = True
+                                                else: # use average score for rating
+                                                    add_rating_value = round(float(audience_score_total / audience_ratings_found), 1)
+                                                
+                                                if add_rating_value >= rating_info['score_good']:
+                                                    metadata.audience_rating_image = rating_info['image_good']
+                                                else:
+                                                    metadata.audience_rating_image = rating_info['image_bad']
+                                                
+                                                metadata.audience_rating = add_rating_value
+                                                metadata.rating_count = add_votes #audience_rating_count doesn't exist
+                                            
+                                            rating_value = rating_value + rating_info['append_text_to_score']
+                                            
+                                            if rating_info['process_votes'] == True:
+                                                rating_votes = str('{:,}'.format(add_votes))
+                                    except Exception as e:
+                                        log.debug(e)
+                                        log.debug("Skipping additional rating without provider attribute!")
+                                        continue
+                                
                                 if rating_provider in allowed_ratings or allowed_ratings == '':
                                     log.debug('adding rating: ' + rating_provider + ': ' + rating_value)
                                     add_ratings_string = add_ratings_string + ' | ' + rating_provider + ': ' + rating_value
+                                    if add_votes > 0 and rating_votes != "":
+                                        add_ratings_string = add_ratings_string + ' (' + rating_votes + ' votes)'
                             if add_ratings_string != '':
                                 log.debug(
                                     'Putting additional ratings at the'
@@ -642,9 +798,9 @@ class XBMCNFO(PlexAgent):
                     if not nfo_rating:
                         nfo_rating = 0.0
                     metadata.summary = unescape(str(preferences['beforerating'])) + '{:.1f}'.format(nfo_rating) + unescape(str(preferences['afterrating'])) + metadata.summary
-                    metadata.rating = nfo_rating
-                else:
-                    metadata.rating = nfo_rating
+                    #metadata.audience_rating = nfo_rating
+                #else:
+                #    metadata.audience_rating = nfo_rating
                 # Writers (Credits)
                 try:
                     credits = nfo_xml.xpath('credits')
@@ -852,81 +1008,81 @@ class XBMCNFO(PlexAgent):
                 except:
                     log.info('Title: -')
                 try:
-                    log.info('Sort Title: ' + str(metadata.title_sort))
+                    log.debug('Sort Title: ' + str(metadata.title_sort))
                 except:
-                    log.info('Sort Title: -')
+                    log.debug('Sort Title: -')
                 try:
                     log.info('Year: ' + str(metadata.year))
                 except:
                     log.info('Year: -')
                 try:
-                    log.info('Original: ' + str(metadata.original_title))
+                    log.debug('Original: ' + str(metadata.original_title))
                 except:
-                    log.info('Original: -')
+                    log.debug('Original: -')
                 try:
-                    log.info('Rating: ' + str(metadata.rating))
+                    log.debug('Rating: ' + str(metadata.rating))
                 except:
-                    log.info('Rating: -')
+                    log.debug('Rating: -')
                 try:
-                    log.info('Content: ' + str(metadata.content_rating))
+                    log.debug('Content: ' + str(metadata.content_rating))
                 except:
-                    log.info('Content: -')
+                    log.debug('Content: -')
                 try:
-                    log.info('Studio: ' + str(metadata.studio))
+                    log.debug('Studio: ' + str(metadata.studio))
                 except:
-                    log.info('Studio: -')
+                    log.debug('Studio: -')
                 try:
-                    log.info('Premiere: ' + str(metadata.originally_available_at))
+                    log.debug('Premiere: ' + str(metadata.originally_available_at))
                 except:
-                    log.info('Premiere: -')
+                    log.debug('Premiere: -')
                 try:
-                    log.info('Tagline: ' + str(metadata.tagline))
+                    log.debug('Tagline: ' + str(metadata.tagline))
                 except:
-                    log.info('Tagline: -')
+                    log.debug('Tagline: -')
                 try:
-                    log.info('Summary: ' + str(metadata.summary))
+                    log.debug('Summary: ' + str(metadata.summary))
                 except:
-                    log.info('Summary: -')
-                log.info('Writers:')
+                    log.debug('Summary: -')
+                log.debug('Writers:')
                 try:
-                    [log.info('\t' + writer.name) for writer in metadata.writers]
+                    [log.debug('\t' + writer.name) for writer in metadata.writers]
                 except:
-                    log.info('\t-')
-                log.info('Directors:')
+                    log.debug('\t-')
+                log.debug('Directors:')
                 try:
-                    [log.info('\t' + director.name) for director in metadata.directors]
+                    [log.debug('\t' + director.name) for director in metadata.directors]
                 except:
-                    log.info('\t-')
-                log.info('Genres:')
+                    log.debug('\t-')
+                log.debug('Genres:')
                 try:
-                    [log.info('\t' + genre) for genre in metadata.genres]
+                    [log.debug('\t' + genre) for genre in metadata.genres]
                 except:
-                    log.info('\t-')
-                log.info('Countries:')
+                    log.debug('\t-')
+                log.debug('Countries:')
                 try:
-                    [log.info('\t' + country) for country in metadata.countries]
+                    [log.debug('\t' + country) for country in metadata.countries]
                 except:
-                    log.info('\t-')
-                log.info('Collections:')
+                    log.debug('\t-')
+                log.debug('Collections:')
                 try:
-                    [log.info('\t' + collection) for collection in metadata.collections]
+                    [log.debug('\t' + collection) for collection in metadata.collections]
                 except:
-                    log.info('\t-')
+                    log.debug('\t-')
                 try:
-                    log.info('Duration: {time} min'.format(
+                    log.debug('Duration: {time} min'.format(
                         time=metadata.duration // 60000))
                 except:
-                    log.info('Duration: -')
-                log.info('Actors:')
+                    log.debug('Duration: -')
+                log.debug('Actors:')
                 for actor in metadata.roles:
                     try:
-                        log.info('\t{actor.name} > {actor.role}'.format(actor=actor))
+                        log.debug('\t{actor.name} > {actor.role}'.format(actor=actor))
                     except:
                         try:
-                            log.info('\t{actor.name}'.format(actor=actor))
+                            log.debug('\t{actor.name}'.format(actor=actor))
                         except:
-                            log.info('\t-')
-                    log.info('---------------------')
+                            log.debug('\t-')
+                    log.debug('---------------------')
             else:
                 log.info('ERROR: No <movie> tag in {nfo}.'
                          ' Aborting!'.format(nfo=nfo_file))
@@ -1073,13 +1229,13 @@ def check_file_paths(file_names, file_type=None):
     for filename in file_names:
         log.debug('Trying {name}'.format(name=filename))
         if os.path.exists(filename):
-            log.info('Found {type} file {name}'.format(
+            log.debug('Found {type} file {name}'.format(
                 type=file_type if file_type else 'a',
                 name=filename,
             ))
             return filename
     else:
-        log.info('No {type} file found! Aborting!'.format(
+        log.debug('No {type} file found! Aborting!'.format(
             type=file_type if file_type else 'valid'
         ))
 
