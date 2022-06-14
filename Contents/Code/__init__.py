@@ -180,8 +180,6 @@ class XBMCNFO(PlexAgent):
 
         if preferences['debug']:
             log.info ('Agents debug logging is enabled!')
-        #else:
-        #    log.info ('Agents debug logging is disabled!')
 
         path1 = media.items[0].parts[0].file
         log.debug('media file: {name}'.format(name=path1))
