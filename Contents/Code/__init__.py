@@ -63,7 +63,7 @@ RATINGS = {
         'append_text_to_score':'',
         'process_votes':True,
         'eval':'round(float(%f), 1)',
-        'post_process':'round_1',
+        'post_process':'round_1', # workaround for eval not working in Plex plugin scripts
     },
     'metacritic': {
         'type':'critic',
@@ -107,8 +107,20 @@ RATINGS = {
         'append_text_to_score':'',
         'process_votes':True,
         'eval':'round(float(%f), 1)',
-        'post_process':'round_1',
+        'post_process':'round_1', # workaround for eval not working in Plex plugin scripts
+    },
+    'trakt': {
+        'type':'audience',
+        'display':'float',
+        'image_good':'',
+        'image_bad':'',
+        'score_good':6.0,
+        'append_text_to_score':'%',
+        'process_votes':True,
+        'eval':'int(round(float(%f), 1)*10)',
+        'post_process':'int_times_10', # workaround for eval not working in Plex plugin scripts
     }
+
 }
 
 
