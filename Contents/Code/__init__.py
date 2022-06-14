@@ -27,7 +27,6 @@ import traceback
 import urllib
 import urlparse
 import subtitles
-import pprint
 
 if sys.version_info < (3, 0):
     from htmlentitydefs import name2codepoint
@@ -309,8 +308,6 @@ class XBMCNFO(PlexAgent):
 
         if preferences['debug']:
             log.info ('Agents debug logging is enabled!')
-        #else:
-        #    log.info ('Agents debug logging is disabled!')
         
         metadata.audience_rating_image=DEFAULT_RATING_IMAGE
         
@@ -798,9 +795,7 @@ class XBMCNFO(PlexAgent):
                     if not nfo_rating:
                         nfo_rating = 0.0
                     metadata.summary = unescape(str(preferences['beforerating'])) + '{:.1f}'.format(nfo_rating) + unescape(str(preferences['afterrating'])) + metadata.summary
-                    #metadata.audience_rating = nfo_rating
-                #else:
-                #    metadata.audience_rating = nfo_rating
+                
                 # Writers (Credits)
                 try:
                     credits = nfo_xml.xpath('credits')
