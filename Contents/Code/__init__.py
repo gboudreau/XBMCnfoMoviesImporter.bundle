@@ -55,6 +55,7 @@ COUNTRY_CODES = {
 
 RATINGS = {
     'imdb': {
+        'name': 'IMDb',
         'type':'audience',
         'display':'float',
         'image_good':'imdb://image.rating',
@@ -66,39 +67,43 @@ RATINGS = {
         'post_process':'round_1', # workaround for eval not working in Plex plugin scripts
     },
     'metacritic': {
+        'name': 'Metacritic',
         'type':'critic',
         'display':'percent',
         'image_good':'rottentomatoes://image.rating.ripe', # none exist for Metacritic, so use RT
         'image_bad':'rottentomatoes://image.rating.rotten',
         'score_good':6.0, # base10
         'append_text_to_score':'',
-        'process_votes':False, # OMDb doesn't provide votes
+        'process_votes':True, # OMDb doesn't provide votes
         'eval':'int(round(float(%f), 1)*10)',
         'post_process':'int_times_10', # workaround for eval not working in Plex plugin scripts
     },
     'tomatometerallcritics': {
+        'name': 'Rotten Tomatoes',
         'type':'critic',
         'display':'percent',
         'image_good':'rottentomatoes://image.rating.ripe',
         'image_bad':'rottentomatoes://image.rating.rotten',
         'score_good':6.0, # base 10
         'append_text_to_score':'%',
-        'process_votes':False, # OMDb doesn't provide votes
+        'process_votes':True, # OMDb doesn't provide votes
         'eval':'int(round(float(%f), 1)*10)',
         'post_process':'int_times_10', # workaround for eval not working in Plex plugin scripts
     },
     'tomatometerallaudience': {
+        'name': 'Rotten Tomatoes (Audience)',
         'type':'audience',
         'display':'percent',
         'image_good':'rottentomatoes://image.rating.upright',
         'image_bad':'rottentomatoes://image.rating.spilled',
         'score_good':6.0, # base10
         'append_text_to_score':'%',
-        'process_votes':False, # OMDb doesn't provide votes
+        'process_votes':True, # OMDb doesn't provide votes
         'eval':'int(round(float(%f), 1)*10)',
         'post_process':'int_times_10', # workaround for eval not working in Plex plugin scripts
     },
     'themoviedb': {
+        'name': 'TMDB',
         'type':'audience',
         'display':'float',
         'image_good':'themoviedb://image.rating',
@@ -110,6 +115,7 @@ RATINGS = {
         'post_process':'round_1', # workaround for eval not working in Plex plugin scripts
     },
     'trakt': {
+        'name': 'Trakt',
         'type':'audience',
         'display':'float',
         'image_good':'',
@@ -680,7 +686,7 @@ class XBMCNFO(PlexAgent):
                     add_ratings = None
                     try:
                         add_ratings = nfo_xml.xpath('ratings')
-                        log.debug('Trying to read additional ratings from .nfo.')
+                        log.debug('Read additional ratings from .nfo.')
                     except:
                         log.debug('Can\'t read additional ratings from .nfo.')
                         pass
@@ -702,6 +708,7 @@ class XBMCNFO(PlexAgent):
                         for add_rating_xml in add_ratings:
                             for add_rating in add_rating_xml:
                                 rating_provider = ""
+                                rating_provider_display_name = ""
                                 rating_value = ""
                                 rating_votes = ""
 
@@ -710,12 +717,14 @@ class XBMCNFO(PlexAgent):
                                 except:
                                     try:
                                         rating_provider = str(add_rating.attrib['name'])
+                                        rating_provider_display_name = rating_provider
                                         add_rating_value = float(add_rating.xpath('value')[0].text.replace(',', '.'))
                                         add_votes = int(add_rating.xpath('votes')[0].text)
                                         
                                         # check for default='true' rating and prefer that instead of averaging out the votes
                                         try:
                                             rating_default = (add_rating.attrib['default'].lower() == 'true')
+                                            log.debug(rating_provider + " default is " + str(rating_default))
                                         except:
                                             rating_default = False
                                         
@@ -728,52 +737,74 @@ class XBMCNFO(PlexAgent):
                                         
                                         if rating_provider in RATINGS:
                                             rating_info = RATINGS[rating_provider]
-                                            
+                                            rating_provider_display_name = rating_info['name']
+                                            log.debug(rating_provider_display_name + " - " + rating_info['type'] + " rating type")
+
                                             if rating_info['post_process'] == "round_1":
                                                 add_rating_value = round(add_rating_value, 1) # display score in plot as max=10.0
                                                 rating_value = str(add_rating_value)
                                             elif rating_info['post_process'] == "int_times_10": # display score in plot as max=100
                                                 add_rating_value = round(add_rating_value, 1)
-                                                rating_value = str(int(round(float(add_rating_value*10), 0)))
+                                                rating_value = str(int(round(float(add_rating_value * 10), 0)))
                                             else:
                                                 rating_value = str(add_rating_value)
+                                            log.debug("Rating value: " + rating_value)
                                             
-                                            if rating_info['type'] == 'critic' and add_votes > critic_votes and critic_default_found == False:
+                                            if rating_info['type'] == 'critic' and critic_default_found == False:
                                                 critic_ratings_found += 1
                                                 critic_score_total += add_rating_value
                                                 
                                                 if rating_default == True: # use default provider for rating
                                                     critic_default_found = True
+                                                    log.debug("Critic Default rating set, will not average scores")
                                                 else: # use average score for rating
                                                     add_rating_value = round(float(critic_score_total / critic_ratings_found), 1)
+                                                    log.debug("Average Critic Score: " + str(add_rating_value))
                                                 
-                                                if add_rating_value >= rating_info['score_good']:
-                                                    metadata.rating_image = rating_info['image_good']
-                                                else:
-                                                    metadata.rating_image = rating_info['image_bad']
+                                                # use image from default or rating with most votes
+                                                if (add_votes > critic_votes or rating_default == True) and rating_info['image_good'] and rating_info['image_bad']:
+                                                    if add_rating_value >= rating_info['score_good']:
+                                                        metadata.rating_image = rating_info['image_good']
+                                                    else:
+                                                        metadata.rating_image = rating_info['image_bad']
                                                 
                                                 metadata.rating = add_rating_value
                                                 metadata.rating_count = add_votes
-                                            elif rating_info['type'] == 'audience' and add_votes > audience_votes and audience_default_found == False:
+
+                                                if audience_ratings_found == 0:
+                                                    log.debug("No Audience ratings found, setting them based on Critic Rating in case none provided")
+                                                    metadata.audience_rating = metadata.rating
+                                                    metadata.audience_rating_image = metadata.rating_image
+
+                                            elif rating_info['type'] == 'audience' and audience_default_found == False:
                                                 audience_ratings_found += 1
                                                 audience_score_total += add_rating_value
                                                 
                                                 if rating_default == True: # use default provider for rating
                                                     critic_default_found = True
+                                                    log.debug("Audience Default rating set, will not average scores")
                                                 else: # use average score for rating
                                                     add_rating_value = round(float(audience_score_total / audience_ratings_found), 1)
+                                                    log.debug("Average Audience Score: " + str(add_rating_value))
                                                 
-                                                if add_rating_value >= rating_info['score_good']:
-                                                    metadata.audience_rating_image = rating_info['image_good']
-                                                else:
-                                                    metadata.audience_rating_image = rating_info['image_bad']
+                                                # use image from default or rating with most votes
+                                                if (add_votes > audience_votes or rating_default == True) and rating_info['image_good'] and rating_info['image_bad']:
+                                                    if add_rating_value >= rating_info['score_good']:
+                                                        metadata.audience_rating_image = rating_info['image_good']
+                                                    else:
+                                                        metadata.audience_rating_image = rating_info['image_bad']
                                                 
                                                 metadata.audience_rating = add_rating_value
                                                 metadata.rating_count = add_votes #audience_rating_count doesn't exist
-                                            
+                                                
+                                                if critic_ratings_found == 0:
+                                                    log.debug("No Critic ratings found, setting them based on Audience Rating in case none provided")
+                                                    metadata.rating = metadata.audience_rating
+                                                    metadata.rating_image = metadata.audience_rating_image
+
                                             rating_value = rating_value + rating_info['append_text_to_score']
                                             
-                                            if rating_info['process_votes'] == True:
+                                            if rating_info['process_votes'] == True and add_votes > 0:
                                                 rating_votes = str('{:,}'.format(add_votes))
                                     except Exception as e:
                                         log.debug(e)
@@ -782,7 +813,7 @@ class XBMCNFO(PlexAgent):
                                 
                                 if rating_provider in allowed_ratings or allowed_ratings == '':
                                     log.debug('adding rating: ' + rating_provider + ': ' + rating_value)
-                                    add_ratings_string = add_ratings_string + ' | ' + rating_provider + ': ' + rating_value
+                                    add_ratings_string = add_ratings_string + ' | ' + rating_provider_display_name + ': ' + rating_value
                                     if add_votes > 0 and rating_votes != "":
                                         add_ratings_string = add_ratings_string + ' (' + rating_votes + ' votes)'
                             if add_ratings_string != '':
