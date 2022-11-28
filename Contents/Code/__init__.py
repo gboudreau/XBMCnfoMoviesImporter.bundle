@@ -46,6 +46,7 @@ Trailer = TrailerObject
 COUNTRY_CODES = {
     'Australia': 'Australia,AU',
     'Canada': 'Canada,CA',
+    'Denmark': 'DK,DK',
     'France': 'France,FR',
     'Germany': 'Germany,DE',
     'Netherlands': 'Netherlands,NL',
@@ -65,7 +66,7 @@ NFO_TEXT_REGEX_1 = re.compile(
 )
 NFO_TEXT_REGEX_2 = re.compile(r'^\s*<.*/>[\r\n]+', flags=re.MULTILINE)
 RATING_REGEX_1 = re.compile(
-    r'(?:Rated\s)?(?P<mpaa>[A-z0-9-+/.]+(?:\s[0-9]+[A-z]?)?)?'
+    r'(?:Rated\s)?(?P<mpaa>[A-z0-9-+/.:]+(?:\s[0-9]+[A-z]?)?)?'
 )
 RATING_REGEX_2 = re.compile(r'\s*\(.*?\)')
 
